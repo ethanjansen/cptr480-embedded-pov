@@ -1,3 +1,6 @@
+#ifndef DGPIO_H
+#define DGPIO_H
+
 class DGPIO
 {
 public:
@@ -47,12 +50,10 @@ public:
     static const GPIOTable gpios[];
 
     DGPIO();
-    virtual ~DGPIO (){};
-
+    
     // Public API
     void Init();
 
-    // Client API
     bool Status(GPIOName name);
     void Set(GPIOName name);
     void Clear(GPIOName name);
@@ -63,4 +64,9 @@ private:
     void operator=(const DGPIO&);
 };
 
+// Every user of the GPIO driver class will get this when they include DGPIO.h.
+// It tells the linker that there is an instance of DGPIO called g_gpio---the one and
+// only instance of the GPIO driver, typically instantiated at the top of main.cpp.
 extern DGPIO g_gpio;
+
+#endif

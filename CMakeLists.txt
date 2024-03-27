@@ -27,6 +27,7 @@ set(SRC_FILES
         src/main.cpp
 	src/DGPIO.cpp
 	src/DGPIO.h
+        src/interrupts.cpp
 	device/startup_MKL25Z4.s
 	device/system_MKL25Z4.c
         )

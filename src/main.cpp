@@ -1,7 +1,7 @@
 #include "DGPIO.h"
-#include <MKL25Z4.h>
-#include <cstdio>
+#include "MKL25Z4.h"
 
+// Create singular, global instances of the classes used in this program
 DGPIO g_gpio;
 
 unsigned Iter = 0;
@@ -9,25 +9,29 @@ unsigned Iter = 0;
 int main() {
     g_gpio.Init();
 
-    PORTB->PCR[19] = PORT_PCR_MUX(1);
-    PORTB->PCR[18] = PORT_PCR_MUX(1);
-    PORTD->PCR[1]  = PORT_PCR_MUX(1);
-    GPIOB->PDDR |= (1 << 19);
-    GPIOB->PDDR |= (1 << 18);
-    GPIOD->PDDR |= (1 << 1);
+    // Set up periodic interrupts at 4 Hz (it might be better to have a PIT driver class
+    // but this is just a dirty demo).
+    //
+    // Enable clock to PIT
+    SIM->SCGC6 |= SIM_SCGC6_PIT_MASK;
 
-    GPIOB->PDOR = (GPIOB->PDOR & 0xfff3ffff) | 0x000c0000;
-    GPIOD->PDOR = (GPIOB->PDOR & 0xfffffffc) | 0x00000003;
+    // Enable PIT interrupts in the NVIC
+    NVIC_EnableIRQ(PIT_IRQn);
+
+    // PIT master enable (MDIS=0)
+    PIT->MCR &= ~PIT_MCR_MDIS_MASK;
+    // Set PIT channel 0 for 4 Hz interrupts, and enable
+    // LDVAL = (bus clock / 4) - 1 = 24e6/4 - 1 = 5999999
+    // TCTRL CHN=0, TIE=1, TEN=1
+    PIT->CHANNEL[0].LDVAL = 5999999;
+    PIT->CHANNEL[0].TCTRL = PIT_TCTRL_TIE_MASK | PIT_TCTRL_TEN_MASK;
 
     while (1)
     {
-        //GPIOB->PTOR |= (1 << 18);
-        //GPIOB->PTOR |= (1 << 19);
-        g_gpio.Toggle(DGPIO::LED_BLUE);
+        // I dunno... mine some bitcoin or something?
+//        g_gpio.Toggle(DGPIO::LED_BLUE);
 
-        for (int a = 0 ; a < 100000 ; a++)
-        {}
-
-        printf("Test %d\n", Iter++);
+//        for (int a = 0 ; a < 100000 ; a++)
+//        {}
     }
 } 
