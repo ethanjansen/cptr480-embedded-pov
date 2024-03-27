@@ -29,9 +29,5 @@ int main() {
     while (1)
     {
         // I dunno... mine some bitcoin or something?
-//        g_gpio.Toggle(DGPIO::LED_BLUE);
-
-//        for (int a = 0 ; a < 100000 ; a++)
-//        {}
     }
 } 
