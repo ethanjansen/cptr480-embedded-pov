@@ -59,20 +59,22 @@ __StackLimit:
 __StackTop:
     .size __StackTop, . - __StackTop
 
-    .section .heap
-    .align 3
-#ifdef __HEAP_SIZE
-    .equ    Heap_Size, __HEAP_SIZE
-#else
-    .equ    Heap_Size, 0x80
-#endif
-    .globl    __HeapBase
-    .globl    __HeapLimit
-__HeapBase:
-    .space    Heap_Size
-    .size __HeapBase, . - __HeapBase
-__HeapLimit:
-    .size __HeapLimit, . - __HeapLimit
+/* Disable heap to save RAM and prevent any runtime memory allocation; MH 27 March 2024
+ *     .section .heap
+ *     .align 3
+ * #ifdef __HEAP_SIZE
+ *     .equ    Heap_Size, __HEAP_SIZE
+ * #else
+ *     .equ    Heap_Size, 0x80
+ * #endif
+ *     .globl    __HeapBase
+ *     .globl    __HeapLimit
+ * __HeapBase:
+ *     .space    Heap_Size
+ *     .size __HeapBase, . - __HeapBase
+ * __HeapLimit:
+ *     .size __HeapLimit, . - __HeapLimit
+ */
 
     .section .vector_table,"a",%progbits
     .align 2

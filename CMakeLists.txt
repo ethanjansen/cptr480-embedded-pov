@@ -52,6 +52,7 @@ target_compile_options(${EXECUTABLE} PRIVATE
         -mthumb
         -fdata-sections
         -ffunction-sections
+        -fno-exceptions
         -Wall
         -O0
         -g3

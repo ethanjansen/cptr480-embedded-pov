@@ -138,13 +138,16 @@ SECTIONS
         __bss_end__ = .;
     } > RAM
 
-    .heap :
-    {
-        __end__ = .;
-        end = __end__;
-        *(.heap*)
-        __HeapLimit = .;
-    } > RAM
+    /*  Disable the heap!  no dynamic memory allocation (MH changed 27 March 2024)
+     *
+     * .heap :
+     * {
+     *     __end__ = .;
+     *     end = __end__;
+     *     *(.heap*)
+     *     __HeapLimit = .;
+     * } > RAM
+     */
 
     /* .stack_dummy section doesn't contains any symbols. It is only
      * used for linker to calculate size of stack sections, and assign
@@ -161,5 +164,5 @@ SECTIONS
     PROVIDE(__stack = __StackTop);
 
     /* Check if data + heap + stack exceeds RAM limit */
-    ASSERT(__StackLimit >= __HeapLimit, "region RAM overflowed with stack")
+    /* ASSERT(__StackLimit >= __HeapLimit, "region RAM overflowed with stack") */
 }
