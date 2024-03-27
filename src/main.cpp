@@ -4,9 +4,13 @@
 // Create singular, global instances of the classes used in this program
 DGPIO g_gpio;
 
-unsigned Iter = 0;
 
 int main() {
+    // Initialize hardware.  This is separate from the class constructors, because
+    // in some applications it may be necessary to re-init (and our class instances
+    // are eternal), and because the order of hardware initialization may matter,
+    // so it's better to do it explicitly inside main() than implicitly at object
+    // creation.
     g_gpio.Init();
 
     // Set up periodic interrupts at 4 Hz (it might be better to have a PIT driver class
@@ -25,6 +29,7 @@ int main() {
     // TCTRL CHN=0, TIE=1, TEN=1
     PIT->CHANNEL[0].LDVAL = 5999999;
     PIT->CHANNEL[0].TCTRL = PIT_TCTRL_TIE_MASK | PIT_TCTRL_TEN_MASK;
+
 
     while (1)
     {
