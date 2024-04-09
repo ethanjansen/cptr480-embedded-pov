@@ -1,11 +1,15 @@
 #include "DGPIO.h"
 #include "DPIT.h"
+#include "Morse.h"
 #include "MKL25Z4.h"
+
+// Global Constants
+const char* const morseMessage = "SOS";
 
 // Create singular, global instances of the classes used in this program
 DGPIO g_gpio;
 DPIT g_pit;
-
+Morse g_morse;
 
 int main() {
     // Initialize hardware.  This is separate from the class constructors, because
@@ -15,11 +19,14 @@ int main() {
     // creation.
     g_gpio.Init();
 
+    // Initialize morse code
+    g_morse.getMorseString(morseMessage);
+
     // Initialize PIT
     g_pit.init();
 
-    // Set up PIT to interrupt at 4Hz
-    g_pit.setInterruptsPerSec(DPIT::PIT0, 4);
+    // Set up PIT to interrupt at 1Hz
+    g_pit.setInterruptsPerSec(DPIT::PIT0, 1);
 
     // Start PIT
     g_pit.start(DPIT::PIT0);
