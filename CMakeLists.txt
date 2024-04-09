@@ -26,6 +26,7 @@ message(STATUS "CMAKE_TOOLCHAIN_FILE is: ${CMAKE_TOOLCHAIN_FILE}")
 set(SRC_FILES
         src/main.cpp
 	src/DGPIO.cpp
+        src/DPIT.cpp
         src/interrupts.cpp
 	device/startup_MKL25Z4.s
 	device/system_MKL25Z4.c
