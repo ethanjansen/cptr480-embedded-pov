@@ -1,8 +1,10 @@
 #include "DGPIO.h"
+#include "DPIT.h"
 #include "MKL25Z4.h"
 
 // Create singular, global instances of the classes used in this program
 DGPIO g_gpio;
+DPIT g_pit;
 
 
 int main() {
@@ -13,23 +15,14 @@ int main() {
     // creation.
     g_gpio.Init();
 
-    // Set up periodic interrupts at 4 Hz (it might be better to have a PIT driver class
-    // but this is just a dirty demo).
-    //
-    // Enable clock to PIT
-    SIM->SCGC6 |= SIM_SCGC6_PIT_MASK;
+    // Initialize PIT
+    g_pit.init();
 
-    // Enable PIT interrupts in the NVIC
-    NVIC_EnableIRQ(PIT_IRQn);
+    // Set up PIT to interrupt at 4Hz
+    g_pit.setInterruptsPerSec(DPIT::PIT0, 4);
 
-    // PIT master enable (MDIS=0)
-    PIT->MCR &= ~PIT_MCR_MDIS_MASK;
-    // Set PIT channel 0 for 4 Hz interrupts, and enable
-    // LDVAL = (bus clock / 4) - 1 = 24e6/4 - 1 = 5999999
-    // TCTRL CHN=0, TIE=1, TEN=1
-    PIT->CHANNEL[0].LDVAL = 5999999;
-    PIT->CHANNEL[0].TCTRL = PIT_TCTRL_TIE_MASK | PIT_TCTRL_TEN_MASK;
-
+    // Start PIT
+    g_pit.start(DPIT::PIT0);
 
     while (1)
     {
