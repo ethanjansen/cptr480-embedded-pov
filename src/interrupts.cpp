@@ -1,5 +1,4 @@
 // C-linkage interrupt-handler stubs to call the actual handlers inside C++ classes
-
 #include "DGPIO.h"
 #include "DPIT.h"
 #include <stdint.h>
