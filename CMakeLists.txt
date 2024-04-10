@@ -25,6 +25,7 @@ message(STATUS "CMAKE_TOOLCHAIN_FILE is: ${CMAKE_TOOLCHAIN_FILE}")
 # List of source files
 set(SRC_FILES
         src/main.cpp
+        src/Morse.cpp
 	src/DGPIO.cpp
         src/DPIT.cpp
         src/interrupts.cpp

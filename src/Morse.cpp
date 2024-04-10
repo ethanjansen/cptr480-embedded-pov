@@ -1,7 +1,7 @@
 #include "Morse.h"
 
 // Private variables
-const Morse::MorseChar Morse::morseLUT[38] = {
+const Morse::MorseChar Morse::_morseLUT[38] = {
     {0, 0},                         // END
     {4, 0},                         // space // 32
     {22, 0b1110111011101110111000}, // 0 // 48
@@ -32,8 +32,8 @@ const Morse::MorseChar Morse::morseLUT[38] = {
     {14, 0b10111011101000},         // P
     {16, 0b1110111010111000},       // Q
     {10, 0b1011101000},             // R
-    {6, 0b111000},                  // S
-    {8, 0b10101000},                // T
+    {8, 0b10101000},                // S
+    {6, 0b111000},                  // T
     {10, 0b1010111000},             // U
     {12, 0b101010111000},           // V
     {12, 0b101110111000},           // W
@@ -50,14 +50,20 @@ Morse::MorseChar Morse::getMorseChar(char c)
 {
     switch (c)
     {
+    case '\0':
+        return _morseLUT[0];
     case ' ':
-        return morseLUT[0];
+        return _morseLUT[1];
     case '0' ... '9':
-        return morseLUT[c - '0' + 1];
+        return _morseLUT[c - '0' + 2];
     case 'A' ... 'Z':
-        return morseLUT[c - 'A' + 11];
+        return _morseLUT[c - 'A' + 12];
     case 'a' ... 'z':
-        return morseLUT[c - 'a' + 11];
+        return _morseLUT[c - 'a' + 12];
+    default:
+        // shouldn't have gotten here
+        // assume a space
+        return _morseLUT[1];
     }
 }
 
@@ -71,29 +77,32 @@ void Morse::getMorseString(const char *str)
     unsigned i = 0;
     while (str[i] != '\0' && i < Morse::MAX_MORSE_STRING_SIZE)
     {
-        Morse::morseString[i] = getMorseChar(str[i]);
+        Morse::_morseString[i] = getMorseChar(str[i]);
         i++;
     }
+
+    // Add end of MorseString
+    Morse::_morseString[i] = getMorseChar('\0');
 }
 
 // Clear Morse String
 void Morse::clearMorseString()
 {
-    Morse::arrayIndex = 0;
-    Morse::bitIndex = 0;
+    Morse::_arrayIndex = 0;
+    Morse::_bitIndex = 0;
 }
 
 // Read next Morse string bit
 unsigned Morse::readNextMorseStringBit()
 {
     // if outside of MorseString bounds
-    if (Morse::arrayIndex >= Morse::MAX_MORSE_STRING_SIZE)
+    if (Morse::_arrayIndex >= Morse::MAX_MORSE_STRING_SIZE)
     {
         return 0;
     }
 
     // get MorseChar
-    Morse::MorseChar mc = Morse::morseString[Morse::arrayIndex];
+    Morse::MorseChar mc = Morse::_morseString[Morse::_arrayIndex];
 
     // check if end of Morse String
     if (mc.length == 0)
@@ -102,14 +111,14 @@ unsigned Morse::readNextMorseStringBit()
     }
 
     // get bit
-    unsigned bit = (mc.code >> (mc.length - Morse::bitIndex - 1)) & 0x01;
+    unsigned bit = (mc.code >> (mc.length - Morse::_bitIndex - 1)) & 0x01;
 
     // increment bitIndex and check if need to start new MorseChar
-    Morse::bitIndex++;
-    if (Morse::bitIndex == mc.length)
+    Morse::_bitIndex++;
+    if (Morse::_bitIndex == mc.length)
     {
-        Morse::arrayIndex++;
-        Morse::bitIndex = 0;
+        Morse::_arrayIndex++;
+        Morse::_bitIndex = 0;
     }
 
     return bit;

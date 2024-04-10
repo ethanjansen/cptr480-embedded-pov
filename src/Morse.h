@@ -22,17 +22,17 @@ class Morse {
         Morse();
 
         // Get Morse code for a character
-        static MorseChar getMorseChar(char c);
+        MorseChar getMorseChar(char c);
 
         // Get Morse code for a string
         // Saves to morseString
-        static void getMorseString(const char *str);
+        void getMorseString(const char *str);
 
         // Clear Morse string
-        static void clearMorseString();
+        void clearMorseString();
 
         // Read next Morse string bit
-        static unsigned readNextMorseStringBit();
+        unsigned readNextMorseStringBit();
     
     private:
         // no copy or assignment
@@ -41,14 +41,14 @@ class Morse {
 
         // Morse LUT
         // align with ascii
-        static const MorseChar morseLUT[38];
+        static const MorseChar _morseLUT[38];
 
         // Morse String to Output
-        static MorseChar morseString[MAX_MORSE_STRING_SIZE];
+        MorseChar _morseString[MAX_MORSE_STRING_SIZE];
 
         // location to read from
-        static unsigned arrayIndex;
-        static unsigned bitIndex;        
+        unsigned _arrayIndex;
+        unsigned _bitIndex;        
 
 };
 

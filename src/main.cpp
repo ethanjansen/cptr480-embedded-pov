@@ -4,7 +4,7 @@
 #include "MKL25Z4.h"
 
 // Global Constants
-const char* const morseMessage = "SOS";
+const char* const morseMessage = "Ethan Jansen";
 
 // Create singular, global instances of the classes used in this program
 DGPIO g_gpio;
@@ -25,8 +25,8 @@ int main() {
     // Initialize PIT
     g_pit.init();
 
-    // Set up PIT to interrupt at 1Hz
-    g_pit.setInterruptsPerSec(DPIT::PIT0, 1);
+    // Set up PIT to interrupt at 12Hz
+    g_pit.setInterruptsPerSec(DPIT::PIT0, 12);
 
     // Start PIT
     g_pit.start(DPIT::PIT0);

@@ -59,9 +59,9 @@ void DPIT::IRQHandler() {
     // Clear interrupt flag
     PIT->CHANNEL[0].TFLG = PIT_TFLG_TIF_MASK;
 
-    // Output Morse
+    // Output Morse -- currently the PIT is left running after the message is done, the LED will be left off.
     // active low
-    if (Morse::readNextMorseStringBit()) {
+    if (g_morse.readNextMorseStringBit()) {
         g_gpio.Clear(DGPIO::LED_GREEN);
     } else {
         g_gpio.Set(DGPIO::LED_GREEN);
