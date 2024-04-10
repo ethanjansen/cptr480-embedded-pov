@@ -8,8 +8,8 @@
 // (This is checked at runtime if assertions are enabled.)
 const DGPIO::GPIOTable DGPIO::gpios[] = {
     //  name        pin    port     i/o  pu/pd  init
-    { LED_RED,       19,  PortB, Output, Float,    1 },
-    { LED_GREEN,     18,  PortB, Output, Float,    1 },
+    { LED_RED,       18,  PortB, Output, Float,    1 },
+    { LED_GREEN,     19,  PortB, Output, Float,    1 },
     { LED_BLUE,       1,  PortD, Output, Float,    1 },
 };
 
