@@ -1,10 +1,11 @@
 #include "DPIT.h"
 #include "DGPIO.h"
-#include "Morse.h"
+#include "DUART.h"
 #include <MKL25Z4.h>
 
 // Global variables
-volatile uint32_t g_pitTicks = 0;
+static const char *UART_MESSAGE = "Hello, World!\n";
+volatile unsigned g_ledStatus = 0;
 
 // PIT Interval Array
 unsigned DPIT::pitIntervals[NUM_PITNAMES] = {0, 0};
@@ -36,7 +37,7 @@ void DPIT::setInterruptsPerSec(PITName pit, unsigned interruptsPerSec) {
 // Does not check for overflow!
 void DPIT::setSecPerInterrupt(PITName pit, unsigned secPerInterrupt) {
     // LDVAL = (bus clock * seconds per interrrupt) - 1
-    pitIntervals[pit] = (DEFAULT_SYSTEM_CLOCK*((SYSTEM_SIM_CLKDIV1_VALUE>>28)+1)*secPerInterrupt) - 1;
+    pitIntervals[pit] = (DEFAULT_SYSTEM_CLOCK/((SYSTEM_SIM_CLKDIV1_VALUE>>28)+1)*secPerInterrupt) - 1;
 }
 
 // Stops pit
@@ -59,12 +60,22 @@ void DPIT::IRQHandler() {
     // Clear interrupt flag
     PIT->CHANNEL[0].TFLG = PIT_TFLG_TIF_MASK;
 
-    // Output Morse -- currently the PIT is left running after the message is done, the LED will be left off.
-    // active low
-    if (g_morse.readNextMorseStringBit()) {
+    // toggle LED - active low
+    g_ledStatus = !g_ledStatus;
+    if (g_ledStatus) {
         g_gpio.Clear(DGPIO::LED_GREEN);
     } else {
         g_gpio.Set(DGPIO::LED_GREEN);
     }
+
+    // Output message over UART
+    if(g_uart.sendString(UART_MESSAGE)) {
+        // buffer is full, indicate with RED LED
+        // I tested this by using a BAUD of 300 and a frequency >20Hz
+        g_gpio.Clear(DGPIO::LED_RED);
+    } else {
+        g_gpio.Set(DGPIO::LED_RED);
+    }
+
 }
 

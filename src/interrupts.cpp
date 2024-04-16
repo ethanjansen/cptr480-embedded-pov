@@ -1,6 +1,7 @@
 // C-linkage interrupt-handler stubs to call the actual handlers inside C++ classes
 #include "DGPIO.h"
 #include "DPIT.h"
+#include "DUART.h"
 #include <stdint.h>
 
 volatile uint32_t g_sysTicks = 0;
@@ -17,6 +18,12 @@ void PIT_IRQHandler()
 {
     // Call the PIT interrupt handler
     g_pit.IRQHandler();
+}
+
+
+void UART0_IRQHandler() {
+    // Call the UART0 interrupt handler
+    g_uart.IRQHandler();
 }
 
 } // extern "C"
