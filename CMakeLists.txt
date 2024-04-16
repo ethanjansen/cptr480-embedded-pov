@@ -1,4 +1,4 @@
-# CMake file for FRDM-KL25-Blinky
+# CMake file for FRDM-KL25-cptr480
 cmake_minimum_required(VERSION 3.15.3)
 
 # Optional: print out extra messages to see what is going on. Comment it to have less verbose messages
@@ -8,7 +8,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/arm-none-eabi-gcc.cmake)
 
 # Setup project, output and linker file
-project(blinky)
+project(cptr480)
 set(EXECUTABLE ${PROJECT_NAME}.elf)
 set(LINKER_FILE ${CMAKE_SOURCE_DIR}/device/MKL25Z4.ld)
 
@@ -25,9 +25,10 @@ message(STATUS "CMAKE_TOOLCHAIN_FILE is: ${CMAKE_TOOLCHAIN_FILE}")
 # List of source files
 set(SRC_FILES
         src/main.cpp
-        src/Morse.cpp
-	src/DGPIO.cpp
+#        src/Morse.cpp
+      	src/DGPIO.cpp
         src/DPIT.cpp
+        src/DUART.cpp
         src/interrupts.cpp
 	device/startup_MKL25Z4.s
 	device/system_MKL25Z4.c

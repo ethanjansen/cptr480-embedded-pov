@@ -6,7 +6,7 @@
     "configurations": [
         {
             "cwd": "${workspaceRoot}",
-            "executable": "./build/blinky.elf",
+            "executable": "./build/cptr480.elf",
             "name": "Cortex Debug",
             "request": "launch",
             "type": "cortex-debug",

@@ -1,15 +1,12 @@
 #include "DGPIO.h"
 #include "DPIT.h"
-#include "Morse.h"
+#include "DUART.h"
 #include "MKL25Z4.h"
-
-// Global Constants
-const char* const morseMessage = "Ethan Jansen";
 
 // Create singular, global instances of the classes used in this program
 DGPIO g_gpio;
 DPIT g_pit;
-Morse g_morse;
+DUART g_uart;
 
 int main() {
     // Initialize hardware.  This is separate from the class constructors, because
@@ -18,21 +15,17 @@ int main() {
     // so it's better to do it explicitly inside main() than implicitly at object
     // creation.
     g_gpio.Init();
-
-    // Initialize morse code
-    g_morse.getMorseString(morseMessage);
-
-    // Initialize PIT
     g_pit.init();
+    g_uart.init();
 
-    // Set up PIT to interrupt at 12Hz
-    g_pit.setInterruptsPerSec(DPIT::PIT0, 12);
+    // Set up PIT to interrupt at 2 Hz
+    g_pit.setInterruptsPerSec(DPIT::PIT0, 2);
 
     // Start PIT
     g_pit.start(DPIT::PIT0);
 
     while (1)
     {
-        // I dunno... mine some bitcoin or something?
+        // mining bitcoin...
     }
 } 
