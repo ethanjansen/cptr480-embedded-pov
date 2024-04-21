@@ -8,9 +8,13 @@
 // (This is checked at runtime if assertions are enabled.)
 const DGPIO::GPIOTable DGPIO::gpios[] = {
     //  name        pin    port     i/o  pu/pd  init
-    { LED_RED,       19,  PortB, Output, Float,    1 },
-    { LED_GREEN,     18,  PortB, Output, Float,    1 },
+    { LED_RED,       18,  PortB, Output, Float,    1 },  // Big RGB LED on the FRDM-KL25Z board
+    { LED_GREEN,     19,  PortB, Output, Float,    1 },
     { LED_BLUE,       1,  PortD, Output, Float,    1 },
+    { ENCODER1,       4,  PortA, Input,  Float,    0 },  // Rotary encoder pins have their own pull-ups on the PCB
+    { ENCODER2,       5,  PortA, Input,  Float,    0 },  
+    { SW2,            0,  PortD, Input,  PU,       0 },  // Push-button switches; internal pull-ups are needed
+    { SW3,            0,  PortB, Input,  PU,       0 },
 };
 
 

@@ -9,6 +9,10 @@ public:
         LED_RED = 0,
         LED_GREEN,
         LED_BLUE,
+        ENCODER1,
+        ENCODER2,
+        SW2,
+        SW3,
         NUM_GPIONAMES,
     };
 
@@ -69,4 +73,4 @@ private:
 // only instance of the GPIO driver, typically instantiated at the top of main.cpp.
 extern DGPIO g_gpio;
 
-#endif
+#endif  // DGPIO_H
