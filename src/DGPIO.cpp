@@ -7,10 +7,10 @@
 // NOTE: order must match exactly with the GPIOName enum in DGPIO.h!
 // (This is checked at runtime if assertions are enabled.)
 const DGPIO::GPIOTable DGPIO::gpios[] = {
-    //  name        pin    port     i/o  pu/pd  init
-    { LED_RED,       18,  PortB, Output, Float,    1 },
-    { LED_GREEN,     19,  PortB, Output, Float,    1 },
-    { LED_BLUE,       1,  PortD, Output, Float,    1 },
+    //  name             pin    port     i/o  pu/pd  mux(alt) init
+    { LED_RED,           18,  PortB, Output, Float,   3,      0 },
+    { LED_GREEN,         19,  PortB, Output, Float,   3,      0 },
+    { LED_BLUE,           1,  PortD, Output, Float,   4,      0 },
 };
 
 
@@ -40,8 +40,8 @@ void DGPIO::Init()
         port = (PORT_Type *)(PORTA_BASE + gpios[k].port * 0x1000);
         gpio = (GPIO_Type *)(GPIOA_BASE + gpios[k].port * 0x0040);
 
-        // Set alternate function 1 (GPIO mode) for this pin
-        port->PCR[gpios[k].pin] = (port->PCR[gpios[k].pin] & ~PORT_PCR_MUX_MASK) | PORT_PCR_MUX(1);
+        // Set alternate function to mux. Default should be 1 (GPIO)
+        port->PCR[gpios[k].pin] = (port->PCR[gpios[k].pin] & ~PORT_PCR_MUX_MASK) | PORT_PCR_MUX(gpios[k].mux);
 
         // Enable pull-up or pull-down resistor, or neither
         if (gpios[k].pupd == Float)
