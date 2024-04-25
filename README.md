@@ -19,7 +19,7 @@
  - Question 2 Answers:
    > Can make the high frequency noise basically disappear on the PWM DAC implementation if the PWM frequency is high enough. The noise is still quite apparent at 1kHz, but at 10kHz it is only about 20mV pk-pk. At a frequency of 100kHz can't discern the noise besides the edge-effects which remain at many mV. However, increasing the frequency has the drawback of reducing the voltage resolution. This is because higher frequencies require lower ```MOD``` values, which limit the range of ```CnV``` values that do not correspond to 100% duty cycle.
  - 3 LED Flicker Notes:
-   > In order to have as much resolution as possible I want to fill (or close to it) the ```MOD ```register, but I will change the ```prescaleDivisor``` as slow as possible while still not seeing any flicker. At about 92Hz the flicker is gone unless I move it around, then I might be able to see it. At about 184Hz it is completly gone. I will aim for 184Hz with a ```prescaleDivisor``` of 4.
+   > In order to have as much resolution as possible I want to fill (or close to it) the ```MOD``` register, but I will change the ```prescaleDivisor``` as slow as possible while still not seeing any flicker. At about 92Hz the flicker is gone unless I move it around, then I might be able to see it. At about 184Hz it is completly gone. I will aim for 184Hz with a ```prescaleDivisor``` of 4.
  - Question 5 Answer:
    > I found that a PIT interrupt frequency from 10-20Hz appears to cause smooth fading. I will choose 17Hz (it is quite smooth, but doesn't cycle too fast).
  - Final Implementation Notes:
