@@ -9,6 +9,9 @@ public:
         LED_RED = 0,
         LED_GREEN,
         LED_BLUE,
+        TPM2_CH0_EXT,
+        TPM2_CH1_EXT,
+        TPM0_CH1_EXT,
         NUM_GPIONAMES,
     };
 
@@ -44,6 +47,7 @@ public:
         enum GPIOPort port : 4;
         enum GPIOIO io     : 4;
         enum GPIOPUPD pupd : 4;
+        unsigned mux       : 3; 
         unsigned init      : 4;
     };
 
