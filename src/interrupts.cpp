@@ -1,4 +1,5 @@
 // C-linkage interrupt-handler stubs to call the actual handlers inside C++ classes
+#include "DGPIO.h"
 #include "DPIT.h"
 #include "DTPM.h"
 #include <stdint.h>
@@ -12,6 +13,17 @@ void SysTick_Handler()
     g_sysTicks++;
 }
 
+void PORTA_IRQHandler()
+{
+    // Call the GPIO interrupt handler
+    g_gpio.IRQHandler();
+}
+
+void PORTD_IRQHandler()
+{
+    // Call the GPIO interrupt handler
+    g_gpio.IRQHandler();
+}
 
 void PIT_IRQHandler()
 {

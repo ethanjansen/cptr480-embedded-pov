@@ -7,15 +7,19 @@
 // NOTE: order must match exactly with the GPIOName enum in DGPIO.h!
 // (This is checked at runtime if assertions are enabled.)
 const DGPIO::GPIOTable DGPIO::gpios[] = {
-    //  name        pin    port     i/o  pu/pd  mux(alt) init
-    { LED_RED,       18,  PortB, Output, Float,  3,       1 },  // Big RGB LED on the FRDM-KL25Z board -- active low
-    { LED_GREEN,     19,  PortB, Output, Float,  1,       1 },  // use alt 3 for PWM
-    { LED_BLUE,       1,  PortD, Output, Float,  4,       1 },
-    { ENCODER1,       4,  PortA, Input,  Float,  1,       0 },  // Rotary encoder pins have their own pull-ups on the PCB
-    { ENCODER2,       5,  PortA, Input,  Float,  1,       0 },  
-    { SW2,            0,  PortD, Input,  PU,     1,       0 },  // Push-button switches; internal pull-ups are needed
-    { SW3,            0,  PortB, Input,  PU,     1,       0 },
+    //  name        pin    port     i/o  pu/pd  interrupt    mux(alt) init
+    { LED_RED,       18,  PortB, Output, Float, Disabled,      3,       1 },  // Big RGB LED on the FRDM-KL25Z board -- active low
+    { LED_GREEN,     19,  PortB, Output, Float, Disabled,      1,       1 },  // use alt 3 for PWM
+    { LED_BLUE,       1,  PortD, Output, Float, Disabled,      4,       1 },
+    { ENCODER1,       4,  PortA, Input,  Float, INT_BothEdges, 1,       0 },  // Rotary encoder pins have their own pull-ups on the PCB
+    { ENCODER2,       5,  PortA, Input,  Float, INT_BothEdges, 1,       0 },  
+    { SW2,            0,  PortD, Input,  PU,    Disabled,      1,       0 },  // Push-button switches; internal pull-ups are needed
+    { SW3,            0,  PortB, Input,  PU,    Disabled,      1,       0 },
 };
+
+// Private instance of _interruptableGpios[]
+DGPIO::GPIOTableSmall DGPIO::_interruptableGpios[NUM_GPIONAMES]; // set at runtime
+unsigned DGPIO::_numInterruptableGpios = 0;
 
 
 DGPIO::DGPIO()
@@ -44,8 +48,18 @@ void DGPIO::Init()
         port = (PORT_Type *)(PORTA_BASE + gpios[k].port * 0x1000);
         gpio = (GPIO_Type *)(GPIOA_BASE + gpios[k].port * 0x0040);
 
-        // Set alternate function to mux. Default should be 1 (GPIO)
+        // Set alternate function to mux. Default should be 1 (GPIO), so clear first
         port->PCR[gpios[k].pin] = (port->PCR[gpios[k].pin] & ~PORT_PCR_MUX_MASK) | PORT_PCR_MUX(gpios[k].mux);
+
+        // Set pin interrrupt if available. Default should be 0 (Disabled)
+        if (gpios[k].interrupt && (gpios[k].port == PortA || gpios[k].port == PortD))
+        {
+            // enable interrupts
+            port->PCR[gpios[k].pin] |= PORT_PCR_IRQC(gpios[k].interrupt);
+
+            // record
+            _interruptableGpios[_numInterruptableGpios++] = { gpios[k].name, gpios[k].pin, gpios[k].port};
+        }
 
         // Enable pull-up or pull-down resistor, or neither
         if (gpios[k].pupd == Float)
@@ -118,4 +132,38 @@ void DGPIO::Toggle(GPIOName name)
 {
     GPIO_Type *gpio = (GPIO_Type *)(GPIOA_BASE + gpios[name].port * 0x0040);
     gpio->PTOR = (1 << gpios[name].pin);
+}
+
+
+// Interrupt handler for GPIO ports A and D
+void DGPIO::IRQHandler()
+{
+    // iterate through all interruptable GPIOs
+    for (unsigned i=0; i++; i<_numInterruptableGpios)
+    {
+        // check correct port
+        switch (_interruptableGpios[i].port) {
+            case PortA:
+                if (PORTA->PCR[_interruptableGpios[i].pin] & PORT_PCR_ISF_MASK)
+                {
+                    // do something with the interrupt
+                    // ...
+                }
+                break;
+            case PortD:
+                if (PORTD->PCR[_interruptableGpios[i].pin] & PORT_PCR_ISF_MASK)
+                {
+                    // do something with the interrupt
+                    // ...
+                }
+                break;
+            default:
+                // error
+                break;
+        }
+    }
+
+    // clear all interrupt flags
+    PORTA->ISFR = 0xFFFFFFFF;
+    PORTD->ISFR = 0xFFFFFFFF;
 }
