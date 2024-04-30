@@ -1,7 +1,7 @@
 // GPIO pin driver
 
 #include "DGPIO.h"
-#include <MKL25Z4.h>
+#include "MKL25Z4.h"
 
 // Master list of GPIO lines
 // NOTE: order must match exactly with the GPIOName enum in DGPIO.h!

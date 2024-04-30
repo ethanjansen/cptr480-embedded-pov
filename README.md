@@ -24,3 +24,9 @@
    > I found that a PIT interrupt frequency from 10-20Hz appears to cause smooth fading. I will choose 17Hz (it is quite smooth, but doesn't cycle too fast).
  - Final Implementation Notes:
    > Originally I had created a TPM driver where I could change the ```CnV``` value by specifying a duty cycle "percentage" from 0-10000 (0-100.00%). While this mostly worked with an exponential fade, it did not work well with the squaring implementation of gamma correction. In order to address this I added a way of setting ```CnV``` directly with the TPM driver. Also I decided to keep the RED LED pulsing effect as an option, but I (for some reason) preferred the exponential effect rather than the (seemingly) linear transition--the exponential effect was too fast for color cycling. Because of this my ```LED``` class supports both exponential pulsing and linear cycling.
+
+## [Lab 04:](https://gitlab.cs.wallawalla.edu/janset/student480/-/tree/Lab04?ref_type=tags)
+  - Design Decisions:
+   > WIP
+  - Challenges, Bugs, and Solutions:
+   > WIP 

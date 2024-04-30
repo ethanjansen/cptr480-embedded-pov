@@ -25,13 +25,14 @@ message(STATUS "CMAKE_TOOLCHAIN_FILE is: ${CMAKE_TOOLCHAIN_FILE}")
 # List of source files
 set(SRC_FILES
         src/main.cpp
-#       src/Morse.cpp
-      	src/DGPIO.cpp
-        src/DPIT.cpp
-        src/DTPM.cpp
-        src/LED.cpp
-#       src/DUART.cpp
         src/interrupts.cpp
+        src/DGPIO.cpp
+#       src/DPIT.cpp
+        src/DROTENC.cpp
+        src/DTPM.cpp
+        src/DUART.cpp
+        src/LED.cpp
+#       src/Morse.cpp
 	device/startup_MKL25Z4.s
 	device/system_MKL25Z4.c
         )
@@ -44,11 +45,11 @@ target_compile_definitions(${EXECUTABLE} PRIVATE
         -DNDEBUG
         )
 
-# List of includ directories
+# List of include directories
 target_include_directories(${EXECUTABLE} PRIVATE
         CMSIS
         device
-        src
+        src/include
         )
 
 # Compiler options
