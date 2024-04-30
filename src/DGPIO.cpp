@@ -7,10 +7,14 @@
 // NOTE: order must match exactly with the GPIOName enum in DGPIO.h!
 // (This is checked at runtime if assertions are enabled.)
 const DGPIO::GPIOTable DGPIO::gpios[] = {
-    //  name             pin    port     i/o  pu/pd  mux(alt) init
-    { LED_RED,           18,  PortB, Output, Float,   3,      0 },
-    { LED_GREEN,         19,  PortB, Output, Float,   3,      0 },
-    { LED_BLUE,           1,  PortD, Output, Float,   4,      0 },
+    //  name        pin    port     i/o  pu/pd  mux(alt) init
+    { LED_RED,       18,  PortB, Output, Float,  3,       1 },  // Big RGB LED on the FRDM-KL25Z board -- active low
+    { LED_GREEN,     19,  PortB, Output, Float,  1,       1 },  // use alt 3 for PWM
+    { LED_BLUE,       1,  PortD, Output, Float,  4,       1 },
+    { ENCODER1,       4,  PortA, Input,  Float,  1,       0 },  // Rotary encoder pins have their own pull-ups on the PCB
+    { ENCODER2,       5,  PortA, Input,  Float,  1,       0 },  
+    { SW2,            0,  PortD, Input,  PU,     1,       0 },  // Push-button switches; internal pull-ups are needed
+    { SW3,            0,  PortB, Input,  PU,     1,       0 },
 };
 
 
