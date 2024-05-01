@@ -13,6 +13,8 @@ public:
         ENCODER2,
         SW2,
         SW3,
+        UART0_RX,
+        UART0_TX,
         NUM_GPIONAMES,
     };
 
@@ -54,6 +56,9 @@ public:
         INT_LogicOne,
         NUM_GPIOINTERRUPTS
     };
+
+    // use callbacks for interrupt handling -- what's the worst that can happen?
+    typedef void (*interruptHandler)(void);
         
     struct GPIOTable
     {
@@ -62,16 +67,10 @@ public:
         enum GPIOPort port           : 4; // port name
         enum GPIOIO io               : 4; // input or output
         enum GPIOPUPD pupd           : 4; // pull-up or pull-down
-        enum GPIOInterrupt interrupt : 4; // interrupt type
+        enum GPIOInterrupt interrupt : 4; // interrupt type     
         unsigned mux                 : 3; // mux value (0-7)
         unsigned init                : 4; // init high or low (GPIO)
-    };
-
-    struct GPIOTableSmall // holds less information than GPIOTable
-    {
-        enum GPIOName name : 8; // name
-        unsigned pin       : 8; // pin number
-        enum GPIOPort port : 4; // port name
+        interruptHandler handler;         // Interrupt Handler
     };
 
     static const GPIOTable gpios[];
@@ -93,8 +92,8 @@ private:
     DGPIO(const DGPIO&);
     void operator=(const DGPIO&);
 
-    static GPIOTableSmall _interruptableGpios[NUM_GPIONAMES]; // lists what GPIOs can have interrupts
-    static unsigned _numInterruptableGpios; // number of GPIOs that can have interrupts
+    static unsigned _interruptableGpioIndecies[NUM_GPIONAMES]; // lists the indecies in gpios that have interrupts enabled
+    static unsigned _numInterruptableGpioIndecies; // number of GPIOs that can have interrupts
 };
 
 // Every user of the GPIO driver class will get this when they include DGPIO.h.

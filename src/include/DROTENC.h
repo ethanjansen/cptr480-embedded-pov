@@ -1,6 +1,8 @@
 #ifndef DROTENC_H
 #define DROTENC_H
 
+// Control the RGB LED using the Rotary Encoder: RED is clockwise (positive), BLUE is counter-clockwise (negative).
+// Also outputs position via UART.
 class DROTENC {
     public:
         // empty constructor
@@ -14,31 +16,19 @@ class DROTENC {
 
         // returns the current position of the rotary encoder.
         // positive values are clockwise, negative values are counter-clockwise.
-        inline signed int getPosition() { return _position; }
+        inline signed int getPosition() { return _position/653; }
 
         // sets the current position of the rotary encoder to 0.
         // This will be called via GPIO interrupt if should reset.
-        inline void resetPosition() { 
-            _position = 0; 
-            _changeTPM();
-            _sendPosition();
-        }
+        void resetPosition();
 
         // Increment the current position of the rotary encoder.
         // This will be called via GPIO interrupt if should increment.
-        inline void incrementPosition() { 
-            _position++; 
-            _changeTPM();
-            _sendPosition();
-        }
+        void incrementPosition();
 
         // Decrement the current position of the rotary encoder.
         // This will be called via GPIO interrupt if should decrement.
-        inline void decrementPosition() { 
-            _position--; 
-            _changeTPM();
-            _sendPosition();
-        }
+        void decrementPosition();
 
 
     private:
@@ -47,11 +37,16 @@ class DROTENC {
         void operator=(const DROTENC&);
 
         // private position
-        signed int _position = 0;
+        static signed int _position; // static because only one rotary encoder (stepped by +/- 653 to match TPM frequency choice)
 
         // private API:
 
-        // This will call DTPM::setDutyCycle() based on _position.
+        enum {
+            MAX_POSITION = 100, // ~1 (use 96 for perfect match) rotation for 100% duty cycle
+            MAX_POSITION_INTERNAL = 653*MAX_POSITION, // used to match TPM frequency choice
+        };
+
+        // This will call DTPM::setCnV() based on _position (I want to use quadratic scaling).
         // Called by resetPosition(), incrementPosition(), and decrementPosition().
         void _changeTPM();
 

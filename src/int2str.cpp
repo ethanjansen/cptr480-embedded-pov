@@ -8,28 +8,33 @@
 // conversion.
 void int2str(int i, int base, char *str, int maxLen)
 {
+    // string index
     int p = maxLen - 1; // Start from the "right".
+    str[p] = '\0';  // Null terminator
 
-    int value = i < 0 ? i : -i;  // negative absolute value
+    int value = i < 0 ? -i : i;  // absolute value
     do
     {
-        div_t qr = div(value, base);
-        str[p--] = "0123456789abcdef"[-qr.rem];  // Table look up
-        value = qr.quot;
+        str[--p] = "0123456789abcdef"[value % base];  // Table look up
+        value = value / base;
     }
-    while (value && p >= 0);
+    while (value && p > 0);
 
-    if (value)
-    {   // Fill with '#' symbols when value is too big to display.
-        memset(str, '#', maxLen);
-    }
-    else
-    {
-        if (i < 0)
+    if (value || (p == 0 && i < 0)) // check if no room for negative sign
+    {   // Fill with '#' symbols when value is too big to display. -- leave null terminator
+        for (int j = 0; j < maxLen; j++)
         {
-            str[p--] = '-';
+            str[j] = '#';
         }
-        // Pad left side with spaces.
-        memset(str, ' ', p+1);
+    }
+    else if (i < 0)
+    {
+        str[--p] = '-';
+    }
+
+    // pad left with spaces
+    while (p > 0)
+    {
+        str[--p] = ' ';
     }
 }
