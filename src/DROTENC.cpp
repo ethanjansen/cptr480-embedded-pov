@@ -16,9 +16,9 @@ DROTENC::ROTENCState DROTENC::_state = STATE_00;
 
 void DROTENC::init() {
     // initialize GPIO, TPM, and UART
-    g_gpio.Init(); // TODO: configure IRQHandlers
     g_tpm.init();
     g_uart.init();
+    g_gpio.Init(); // do this last for fear of interrupts during initialization
 }
 
 // sets the current position of the rotary encoder to 0.
