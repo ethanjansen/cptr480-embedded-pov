@@ -2,6 +2,7 @@
 #include "DGPIO.h"
 #include "DUART.h"
 #include "DTPM.h"
+#include "DPIT.h"
 #include <stdint.h>
 
 volatile uint32_t g_sysTicks = 0;
@@ -25,13 +26,13 @@ void PORTD_IRQHandler()
     g_gpio.IRQHandler();
 }
 
-/* // Not Used in Lab04
+
 void PIT_IRQHandler()
 {
     // Call the PIT interrupt handler
     g_pit.IRQHandler();
 }
-*/
+
 
 void UART0_IRQHandler() {
     // Call the UART0 interrupt handler

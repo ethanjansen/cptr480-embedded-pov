@@ -4,29 +4,40 @@
 #include "DGPIO.h"
 #include "DTPM.h"
 #include "DUART.h"
+#include "DPIT.h"
 
 // Single instances
 DGPIO g_gpio;
 DTPM g_tpm;
 DUART g_uart;
+DPIT g_pit;
 
 // static variables
 signed int DROTENC::_position = 0;
 DROTENC::ROTENCState DROTENC::_state = STATE_00;
 
 void DROTENC::init() {
-    // initialize GPIO, TPM, and UART
+    // initialize GPIO, TPM, PIT, and UART
     g_tpm.init();
+    g_pit.init(); // start after tpm
     g_uart.init();
     g_gpio.Init(); // do this last for fear of interrupts during initialization
+
+    // setup PIT
+    g_pit.setInterruptsPerSec(DPIT::PIT0, 833); // every ~1.2ms
+    g_pit.setInterruptsPerSec(DPIT::PIT1, 3334); // every ~300us
+
+    // start PIT to send data
+    g_pit.start(DPIT::PIT0);
 }
 
 // sets the current position of the rotary encoder to 0.
 // This will be called via GPIO interrupt if should reset.
-void DROTENC::resetPosition() { 
+void DROTENC::resetPosition() {
     _position = 0;
-    _changeTPM();
+    //_changeTPM();
     _sendPosition();
+    _changeLightBar();
 }
 
 // Controls position based on rotary encoder and internal state.
@@ -80,20 +91,21 @@ void DROTENC::controlPosition() {
 // This will be called via GPIO interrupt if should increment.
 void DROTENC::incrementPosition() { 
     _position += 653; 
-    _changeTPM();
+    //_changeTPM();
     _sendPosition();
+    _changeLightBar();
 }
 
 // Decrement the current position of the rotary encoder.
 // This will be called via GPIO interrupt if should decrement.
 void DROTENC::decrementPosition() { 
     _position -= 653; 
-    _changeTPM();
+    //_changeTPM();
     _sendPosition();
+    _changeLightBar();
 }
 
 void DROTENC::_changeTPM() {
-    // TODO: implement.
     // get absolute value for use with setCnV
     unsigned abs = _position > 0 ? _position : -_position;
 
@@ -113,4 +125,54 @@ void DROTENC::_changeTPM() {
 
 inline void DROTENC::_sendPosition() {
     g_uart.sendInt(_position/POSITION_MULTIPLIER, 10); // use base 10
+}
+
+void DROTENC::_changeLightBar() {
+    unsigned abs = _position > 0 ? _position/(POSITION_MULTIPLIER*10) : -_position/(POSITION_MULTIPLIER*10);
+
+    switch (abs) {
+        case 0:
+            g_gpio.Clear(DGPIO::LEDBAR_SEG0);
+            g_gpio.Clear(DGPIO::LEDBAR_SEG1);
+            g_gpio.Clear(DGPIO::LEDBAR_SEG2);
+            g_gpio.Clear(DGPIO::LEDBAR_SEG3);
+            g_gpio.Clear(DGPIO::LEDBAR_SEG4);
+            g_gpio.Clear(DGPIO::LEDBAR_SEG5);
+            g_gpio.Clear(DGPIO::LEDBAR_SEG6);
+            g_gpio.Clear(DGPIO::LEDBAR_SEG7);
+            break;
+        case 1:
+            g_gpio.Set(DGPIO::LEDBAR_SEG3);
+            g_gpio.Clear(DGPIO::LEDBAR_SEG2);
+            break;
+        case 2:
+            g_gpio.Set(DGPIO::LEDBAR_SEG2);
+            g_gpio.Clear(DGPIO::LEDBAR_SEG1);
+            break;
+        case 3:
+            g_gpio.Set(DGPIO::LEDBAR_SEG1);
+            g_gpio.Clear(DGPIO::LEDBAR_SEG0);
+            break;
+        case 4:
+            g_gpio.Set(DGPIO::LEDBAR_SEG0);
+            g_gpio.Clear(DGPIO::LEDBAR_SEG4);
+            break;
+        case 5:
+            g_gpio.Set(DGPIO::LEDBAR_SEG4);
+            g_gpio.Clear(DGPIO::LEDBAR_SEG5);
+            break;
+        case 6:
+            g_gpio.Set(DGPIO::LEDBAR_SEG5);
+            g_gpio.Clear(DGPIO::LEDBAR_SEG6);
+            break;
+        case 7:
+            g_gpio.Set(DGPIO::LEDBAR_SEG6);
+            g_gpio.Clear(DGPIO::LEDBAR_SEG7);
+            break;
+        case 8:
+            g_gpio.Set(DGPIO::LEDBAR_SEG7);
+            break;
+        default:
+            break;
+    }
 }

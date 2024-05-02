@@ -7,9 +7,11 @@
 // will suite your frequency and dutyCycle needs.
 const DTPM::TPMConfig DTPM::tpmConfigs[] = {
 //  {TPMName,     TPMChannel, TPMPrescaleDivisor, PWMMode,        PWMPolarity, frequency, dutyCyclePercent }
-    {DTPM::TPM_2, DTPM::TPM_CH0, DTPM::DIV_4, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 184, 0},  // Red
+//    {DTPM::TPM_2, DTPM::TPM_CH0, DTPM::DIV_4, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 184, 0},  // Red
 //    {DTPM::TPM_2, DTPM::TPM_CH1, DTPM::DIV_4, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 184, 0},     // Green -- unused
-    {DTPM::TPM_0, DTPM::TPM_CH1, DTPM::DIV_4, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 184, 0},     // Blue
+//    {DTPM::TPM_0, DTPM::TPM_CH1, DTPM::DIV_4, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 184, 0},     // Blue
+    {DTPM::TPM_2, DTPM::TPM_CH0, DTPM::DIV_1, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 800000, 2000},  // LED - Low (these go through inverters)
+    {DTPM::TPM_2, DTPM::TPM_CH1, DTPM::DIV_1, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 800000, 5200},  // LED - High
 };
 
 // nothing initialized

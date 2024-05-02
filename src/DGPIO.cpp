@@ -9,16 +9,26 @@
 // NOTE: order must match exactly with the GPIOName enum in DGPIO.h!
 // (This is checked at runtime if assertions are enabled.)
 const DGPIO::GPIOTable DGPIO::gpios[] = {
-    //  name        pin    port     i/o  pu/pd  interrupt    mux(alt)  init  interruptHandler
-    { LED_RED,       18,  PortB, Output, Float, Disabled,            3,       1,   nullptr                    },  // Big RGB LED on the FRDM-KL25Z board -- active low
+    //  name        pin    port     i/o  pu/pd  interrupt        mux(alt)   init  interruptHandler
+    { LED_RED,       18,  PortB, Output, Float, Disabled,            1,       1,   nullptr                    },  // Big RGB LED on the FRDM-KL25Z board -- active low // use alt 3 for PWM 
     { LED_GREEN,     19,  PortB, Output, Float, Disabled,            1,       1,   nullptr                    },  // use alt 3 for PWM
-    { LED_BLUE,       1,  PortD, Output, Float, Disabled,            4,       1,   nullptr                    },
+    { LED_BLUE,       1,  PortD, Output, Float, Disabled,            1,       1,   nullptr                    },  // use alt 4 for PWM
     { ENCODER1,       4,  PortA, Input,  Float, INT_BothEdges,       1,       0,   DROTENC::controlPosition   },  // Rotary encoder pins have their own pull-ups on the PCB
     { ENCODER2,       5,  PortA, Input,  Float, INT_BothEdges,       1,       0,   DROTENC::controlPosition   },  
     { SW2,            0,  PortD, Input,  PU,    INT_RisingEdge,      1,       0,   DROTENC::resetPosition     },  // Push-button switches; internal pull-ups are needed
     { SW3,            0,  PortB, Input,  PU,    Disabled,            1,       0,   nullptr                    },
     { UART0_RX,       1,  PortA, Input,  Float, Disabled,            2,       0,   nullptr                    }, // UART0
     { UART0_TX,       2,  PortA, Output, Float, Disabled,            2,       0,   nullptr                    },
+    { LEDBAR_LOW,     2,  PortB, Output, Float, Disabled,            3,       0,   nullptr                    },  // LED bar configuration // use alt 3 for PWM
+    { LEDBAR_HIGH,    3,  PortB, Output, Float, Disabled,            3,       0,   nullptr                    },  // use alt 3 for PWM
+    { LEDBAR_SEG0,    0,  PortC, Output, Float, Disabled,            1,       0,   nullptr                    },
+    { LEDBAR_SEG1,    1,  PortC, Output, Float, Disabled,            1,       0,   nullptr                    },
+    { LEDBAR_SEG2,    2,  PortC, Output, Float, Disabled,            1,       0,   nullptr                    },
+    { LEDBAR_SEG3,    3,  PortC, Output, Float, Disabled,            1,       0,   nullptr                    },
+    { LEDBAR_SEG4,    4,  PortC, Output, Float, Disabled,            1,       0,   nullptr                    },
+    { LEDBAR_SEG5,    5,  PortC, Output, Float, Disabled,            1,       0,   nullptr                    },
+    { LEDBAR_SEG6,    6,  PortC, Output, Float, Disabled,            1,       0,   nullptr                    },
+    { LEDBAR_SEG7,    7,  PortC, Output, Float, Disabled,            1,       0,   nullptr                    },
 };
 
 // Private instance of _interruptableGpios[]

@@ -73,6 +73,10 @@ class DROTENC {
         // This will call DUART::send() to send the current position to the UART.
         // Called by resetPosition(), incrementPosition(), and decrementPosition().
         static void _sendPosition();
+
+        // This will set GPIOC values to extend/retract light bar (WIP)
+        // Called by resetPosition(), incrementPosition(), and decrementPosition().
+        static void _changeLightBar();
 };
 
 #endif // DROTENC_H

@@ -15,6 +15,16 @@ public:
         SW3,
         UART0_RX,
         UART0_TX,
+        LEDBAR_LOW,
+        LEDBAR_HIGH,
+        LEDBAR_SEG0,
+        LEDBAR_SEG1,
+        LEDBAR_SEG2,
+        LEDBAR_SEG3,
+        LEDBAR_SEG4,
+        LEDBAR_SEG5,
+        LEDBAR_SEG6,
+        LEDBAR_SEG7,
         NUM_GPIONAMES,
     };
 

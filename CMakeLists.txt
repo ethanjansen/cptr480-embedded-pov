@@ -41,7 +41,7 @@ set(SRC_FILES
 
         # drivers
         src/DGPIO.cpp
-#       src/DPIT.cpp
+        src/DPIT.cpp
         src/DROTENC.cpp
         src/DTPM.cpp
         src/DUART.cpp

@@ -1,5 +1,5 @@
 #include "DPIT.h"
-#include "LED.h"
+#include "DTPM.h"
 #include "MKL25Z4.h"
 
 // PIT Interval Array
@@ -50,11 +50,25 @@ void DPIT::start(PITName pit) {
 
 // PIT interrupt handler
 void DPIT::IRQHandler() {
-    // Clear interrupt flag
-    PIT->CHANNEL[0].TFLG = PIT_TFLG_TIF_MASK;
+    // Check which PIT triggered the interrupt
+    if (PIT->CHANNEL[0].TFLG & PIT_TFLG_TIF_MASK) {
+        // Do something - LEDBAR Custom
+        stop(PIT0); // stop self
+        g_tpm.stop(DTPM::TPM_2); // stop TPM to reset LEDBAR send
+        start(PIT1); // start reset cycle
 
-    // color cycle LED
-    g_led.stateTransition();
+        // Clear flag
+        PIT->CHANNEL[0].TFLG = PIT_TFLG_TIF_MASK;
+    }
 
+    if (PIT->CHANNEL[1].TFLG & PIT_TFLG_TIF_MASK) {
+        // Do something - LEDBAR Custom
+        stop(PIT1); // stop self
+        g_tpm.start(DTPM::TPM_2); // start TPM to send LEDBAR data
+        start(PIT0); // start reset cycle
+
+        // Clear flag
+        PIT->CHANNEL[1].TFLG = PIT_TFLG_TIF_MASK;
+    }
 }
 
