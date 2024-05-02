@@ -7,8 +7,14 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 # Path to toolchain file. This one has to be before 'project()' below
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/arm-none-eabi-gcc.cmake)
 
-# Setup project, output and linker file
-project(cptr480)
+# Setup project -- nice for grading
+if(EXISTS ${CMAKE_SOURCE_DIR}/.cptr480)
+        project(cptr480)
+else()
+        project(blinky)
+endif()
+
+# Setup output and linker file
 set(EXECUTABLE ${PROJECT_NAME}.elf)
 set(LINKER_FILE ${CMAKE_SOURCE_DIR}/device/MKL25Z4.ld)
 
@@ -24,14 +30,27 @@ message(STATUS "CMAKE_TOOLCHAIN_FILE is: ${CMAKE_TOOLCHAIN_FILE}")
 
 # List of source files
 set(SRC_FILES
+        # main
         src/main.cpp
-#       src/Morse.cpp
-      	src/DGPIO.cpp
-        src/DPIT.cpp
-        src/DTPM.cpp
-        src/LED.cpp
-#       src/DUART.cpp
+
+        # interrupts
         src/interrupts.cpp
+
+        # helpers
+        src/int2str.cpp
+
+        # drivers
+        src/DGPIO.cpp
+#       src/DPIT.cpp
+        src/DROTENC.cpp
+        src/DTPM.cpp
+        src/DUART.cpp
+
+        # other classes
+#       src/LED.cpp
+#       src/Morse.cpp
+
+        # Device files
 	device/startup_MKL25Z4.s
 	device/system_MKL25Z4.c
         )
@@ -44,11 +63,11 @@ target_compile_definitions(${EXECUTABLE} PRIVATE
         -DNDEBUG
         )
 
-# List of includ directories
+# List of include directories
 target_include_directories(${EXECUTABLE} PRIVATE
         CMSIS
         device
-        src
+        src/include
         )
 
 # Compiler options

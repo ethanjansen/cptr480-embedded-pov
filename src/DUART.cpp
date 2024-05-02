@@ -1,5 +1,6 @@
 #include "DUART.h"
 #include "MKL25Z4.h"
+#include "int2str.h"
 
 // constant configuration
 const DUART::UARTConfig DUART::uartConfigs[] = {
@@ -22,8 +23,6 @@ unsigned DUART::init() {
             case UART_0:
                 // Enable UART0 clock
                 SIM->SCGC4 |= SIM_SCGC4_UART0_MASK;
-                // Enable PORTA clock
-                SIM->SCGC5 |= SIM_SCGC5_PORTA_MASK;
                 // Set UART0 clock source to MCGPLLCLK/2
                 SIM->SOPT2 |= SIM_SOPT2_UART0SRC(1) | SIM_SOPT2_PLLFLLSEL_MASK;
                 // Set UART0 baud rate to uartConfigs[i].baudRate
@@ -36,9 +35,6 @@ unsigned DUART::init() {
                 UART0->C4 |= uartConfigs[i].bitMode & 0x20;
                 UART0->C3 |= uartConfigs[i].inversion & 0x10;
                 UART0->S2 |= (uartConfigs[i].inversion & 0x10) | (uartConfigs[i].direction & 0x20);
-                // Set PORTA PCR to enable UART0 on pins PTA1 and PTA2 (ALT2)
-                PORTA->PCR[1] = PORT_PCR_MUX(2);
-                PORTA->PCR[2] = PORT_PCR_MUX(2);
                 // Enable interrupts in NVIC
                 NVIC_EnableIRQ(UART0_IRQn);
                 // Enable UART0 transmitter
@@ -103,6 +99,39 @@ unsigned DUART::sendString(const char *str) {
 
     // return success
     return 0;
+}
+
+// send an int as an ASCII string, using base (2-16). End with newline.
+// Will always use '-' for negative rather than 2's complement.
+// returns 0 on success, 1 if buffer does not have enough space
+unsigned DUART::sendInt(signed num, signed base) {
+    unsigned maxLength;
+
+    // dynamically find max length for common bases (don't forget sign)
+    switch (base) {
+        case 8: // octal
+            maxLength = 13; // 11 data bits, 1 sign, 1 null terminator
+            break;
+        case 10: // decimal
+            maxLength = 12; // 10 data bits, 1 sign, 1 null terminator
+            break;
+        case 16: // hex
+            maxLength = 9; // 8 data bits, 1 sign, 1 null terminator
+            break;
+        case 2: // binary
+        default: // use largest
+            maxLength = 33; // 31 data bits, 1 sign, 1 null terminator
+            break;
+    };
+
+    char str[maxLength+1]; // extra for newline
+    int2str(num, base, str, maxLength); // 12 is max length of int in base 2???
+    // add newline and swap with null terminator
+    str[maxLength-1] = '\n';
+    str[maxLength] = '\0';
+
+    // send string
+    return sendString(str);
 }
 
 // simply disabled UART modules in uartConfigs
