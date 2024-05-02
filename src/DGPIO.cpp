@@ -10,15 +10,15 @@
 // (This is checked at runtime if assertions are enabled.)
 const DGPIO::GPIOTable DGPIO::gpios[] = {
     //  name        pin    port     i/o  pu/pd  interrupt    mux(alt)  init  interruptHandler
-    { LED_RED,       18,  PortB, Output, Float, Disabled,            3,       1,   nullptr                  },  // Big RGB LED on the FRDM-KL25Z board -- active low
-    { LED_GREEN,     19,  PortB, Output, Float, Disabled,            1,       1,   nullptr                  },  // use alt 3 for PWM
-    { LED_BLUE,       1,  PortD, Output, Float, Disabled,            4,       1,   nullptr                  },
-    { ENCODER1,       4,  PortA, Input,  Float, INT_BothEdges,       1,       0,   g_rotenc.handler()       },  // Rotary encoder pins have their own pull-ups on the PCB
-    { ENCODER2,       5,  PortA, Input,  Float, INT_BothEdges,       1,       0,   g_rotenc.handler()       },  
-    { SW2,            0,  PortD, Input,  PU,    INT_RisingEdge,      1,       0,   g_rotenc.resetPosition() },  // Push-button switches; internal pull-ups are needed
-    { SW3,            0,  PortB, Input,  PU,    Disabled,            1,       0,   nullptr                  },
-    { UART0_RX,       1,  PortA, Input,  Float, Disabled,            2,       0,   nullptr                  }, // UART0
-    { UART0_TX,       2,  PortA, Output, Float, Disabled,            2,       0,   nullptr                  },
+    { LED_RED,       18,  PortB, Output, Float, Disabled,            3,       1,   nullptr                    },  // Big RGB LED on the FRDM-KL25Z board -- active low
+    { LED_GREEN,     19,  PortB, Output, Float, Disabled,            1,       1,   nullptr                    },  // use alt 3 for PWM
+    { LED_BLUE,       1,  PortD, Output, Float, Disabled,            4,       1,   nullptr                    },
+    { ENCODER1,       4,  PortA, Input,  Float, INT_BothEdges,       1,       0,   DROTENC::controlPosition   },  // Rotary encoder pins have their own pull-ups on the PCB
+    { ENCODER2,       5,  PortA, Input,  Float, INT_BothEdges,       1,       0,   DROTENC::controlPosition   },  
+    { SW2,            0,  PortD, Input,  PU,    INT_RisingEdge,      1,       0,   DROTENC::resetPosition     },  // Push-button switches; internal pull-ups are needed
+    { SW3,            0,  PortB, Input,  PU,    Disabled,            1,       0,   nullptr                    },
+    { UART0_RX,       1,  PortA, Input,  Float, Disabled,            2,       0,   nullptr                    }, // UART0
+    { UART0_TX,       2,  PortA, Output, Float, Disabled,            2,       0,   nullptr                    },
 };
 
 // Private instance of _interruptableGpios[]
@@ -54,17 +54,6 @@ void DGPIO::Init()
 
         // Set alternate function to mux. Default should be 1 (GPIO), so clear first
         port->PCR[gpios[k].pin] = (port->PCR[gpios[k].pin] & ~PORT_PCR_MUX_MASK) | PORT_PCR_MUX(gpios[k].mux);
-
-        // Set pin interrrupt if available. Default should be 0 (Disabled)
-        if (gpios[k].interrupt && (gpios[k].port == PortA || gpios[k].port == PortD))
-        {
-            // enable interrupts
-            port->PCR[gpios[k].pin] |= PORT_PCR_IRQC(gpios[k].interrupt);
-            NVIC_EnableIRQ((IRQn_Type)(PORTA_IRQn + (gpios[k].port/PortD))); // magic: port==0 for A so use PORTA_IRQn, port==3 for D so use PORTA_IRQn+1==PORTD_IRQn
-
-            // record
-            _interruptableGpioIndecies[_numInterruptableGpioIndecies++] = k;
-        }
 
         // Enable pull-up or pull-down resistor, or neither
         if (gpios[k].pupd == Float)
@@ -103,6 +92,19 @@ void DGPIO::Init()
         {
             // Set direction to input
             gpio->PDDR &= ~(1 << gpios[k].pin);
+        }
+
+        // Set pin interrrupt if available. Default should be 0 (Disabled).
+        // Do this Last!!! This will prevent any interrupts from happening early (which could cause HardFault)
+        if (gpios[k].interrupt && (gpios[k].port == PortA || gpios[k].port == PortD))
+        {
+            // enable interrupts
+            port->ISFR = 0xFFFFFFFF;
+            port->PCR[gpios[k].pin] |= PORT_PCR_IRQC(gpios[k].interrupt);
+            NVIC_EnableIRQ((IRQn_Type)(PORTA_IRQn + (gpios[k].port/PortD))); // magic: port==0 for A so use PORTA_IRQn, port==3 for D so use PORTA_IRQn+1==PORTD_IRQn
+
+            // record
+            _interruptableGpioIndecies[_numInterruptableGpioIndecies++] = k;
         }
     }
 }
@@ -144,7 +146,7 @@ void DGPIO::Toggle(GPIOName name)
 void DGPIO::IRQHandler()
 {
     // iterate through all interruptable GPIOs
-    for (unsigned i=0; i++; i<_numInterruptableGpioIndecies)
+    for (unsigned i=0; i<_numInterruptableGpioIndecies; i++)
     {
         unsigned k = _interruptableGpioIndecies[i];
         // check correct port

@@ -49,12 +49,11 @@ public:
         DMA_RisingEdge, // DMA not implemented - *Do not use*
         DMA_FallingEdge,
         DMA_BothEdges,
-        INT_LogicZero,
+        INT_LogicZero = 8,
         INT_RisingEdge,
         INT_FallingEdge,
         INT_BothEdges,
         INT_LogicOne,
-        NUM_GPIOINTERRUPTS
     };
 
     // use callbacks for interrupt handling -- what's the worst that can happen?

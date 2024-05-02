@@ -24,15 +24,27 @@ message(STATUS "CMAKE_TOOLCHAIN_FILE is: ${CMAKE_TOOLCHAIN_FILE}")
 
 # List of source files
 set(SRC_FILES
+        # main
         src/main.cpp
+
+        # interrupts
         src/interrupts.cpp
+
+        # helpers
+        src/int2str.cpp
+
+        # drivers
         src/DGPIO.cpp
 #       src/DPIT.cpp
         src/DROTENC.cpp
         src/DTPM.cpp
         src/DUART.cpp
-        src/LED.cpp
+
+        # other classes
+#       src/LED.cpp
 #       src/Morse.cpp
+
+        # Device files
 	device/startup_MKL25Z4.s
 	device/system_MKL25Z4.c
         )
