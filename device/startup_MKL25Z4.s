@@ -233,6 +233,6 @@ kinetis_flash_config:
     .long 0xffffffff
     .long 0xffffffff
     .long 0xffffffff
-    .long 0xfffffffe
+    .long 0xfffffbfe // disable NMI pin to make PTA4 more usable for GPIO; MH 13 April 2024 (was 0xfffffffe) 
 
     .end
