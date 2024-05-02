@@ -7,8 +7,14 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 # Path to toolchain file. This one has to be before 'project()' below
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/arm-none-eabi-gcc.cmake)
 
-# Setup project, output and linker file
-project(cptr480)
+# Setup project -- nice for grading
+if(EXISTS ${CMAKE_SOURCE_DIR}/.cptr480)
+        project(cptr480)
+else()
+        project(blinky)
+endif()
+
+# Setup output and linker file
 set(EXECUTABLE ${PROJECT_NAME}.elf)
 set(LINKER_FILE ${CMAKE_SOURCE_DIR}/device/MKL25Z4.ld)
 
