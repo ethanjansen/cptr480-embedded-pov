@@ -6,7 +6,6 @@
 class DTPM {
     public:
         // enums.
-        // TODO: label defaults
 
         // TPM Names.
         enum TPMName {
@@ -69,49 +68,50 @@ class DTPM {
         // constant for compile-time configuration
         static const TPMConfig tpmConfigs[];
 
-        // empty constructor.
-        DTPM();
-
         // TPM Initialization API.
-        unsigned init();
+        static unsigned init();
+
+        // Check initialization status.
+        static inline bool isInit() { return _init; }
 
         // Set PWM duty cycle.
         // expects dutyCyclePercent to be between 0 and 100.
         // returns channel CnV on success, negative on failure
-        signed setDutyCycle(TPMName tpm, TPMChannel channel, unsigned dutyCyclePercent, PWMMode pwmMode);
+        static signed setDutyCycle(TPMName tpm, TPMChannel channel, unsigned dutyCyclePercent, PWMMode pwmMode);
 
         // Set PWM CnV directly
         // expects cnv between 0 and 65535
         // returns channel CnV on success, negative on failure.
-        signed setCnV(TPMName tpm, TPMChannel channel, unsigned cnv);
+        static signed setCnV(TPMName tpm, TPMChannel channel, unsigned cnv);
 
         // Configures module MOD from freq, prescaleDivisor and pwmMode.
         // returns module MOD on success, non-positive on failure
-        signed setFrequency(TPMName tpm, unsigned freq, TPMPrescaleDivisor prescalerDivisor, PWMMode pwmMode);
+        static signed setFrequency(TPMName tpm, unsigned freq, TPMPrescaleDivisor prescalerDivisor, PWMMode pwmMode);
 
         // Start PWM module.
         // can control individual channel via setDutyCycle(dutyCyclePercent=%)
-        void start(TPMName tpm);
+        static void start(TPMName tpm);
 
         // Stop PWM module.
         // can control individual channel via setDutyCycle(dutyCyclePercent=0)
-        void stop(TPMName tpm);
+        static void stop(TPMName tpm);
 
         // interrupt handler.
         // currently hangs the system -- don't enable.
-        void IRQHandler();
+        static void IRQHandler();
 
     private:
         // no copy or assignment.
+        DTPM();
         DTPM(const DTPM&);
         void operator=(const DTPM&);
 
         // Status flags for if each TPM is initialized. Holds the TPM MOD value.
         // This prevents multiple frequencies, modes, and prescalerDivisors from being set on the same module.
         static unsigned _tpmInitialized[NUM_TPMS];
-};
 
-// single global instance.
-extern DTPM g_tpm;
+        // Status flag for if the TPM module is initialized.
+        static bool _init;
+};
 
 #endif // DTPM_H

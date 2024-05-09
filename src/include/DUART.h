@@ -74,36 +74,37 @@ class DUART {
         // constant for compile-time configuration
         static const UARTConfig uartConfigs[];
 
-        // empty constructor
-        DUART();
-
         // initialize UART module.
         // requires configuration and UART number (currently limited to UART0).
         // Requires GPIO configuration for UART for communication over OpenSDA.
-        unsigned init();
+        static unsigned init();
+
+        // Check initialization status
+        static inline bool isInit() { return _init; }
 
         // disable UART module
-        void disable();
+        static void disable();
 
         // send a string by filling the internal buffer and enabling interrupts
         // returns 0 on success, 1 if buffer does not have enough space 
-        unsigned sendString(const char *str);
+        static unsigned sendString(const char *str);
 
         // send an int as an ASCII string, using base (2-16).
         // returns 0 on success, 1 if buffer does not have enough space
-        unsigned sendInt(signed num, signed base);
+        static unsigned sendInt(signed num, signed base);
 
         // get the number of bytes free in the buffer
-        unsigned getBufferFreeSpace();
+        static unsigned getBufferFreeSpace();
 
         // clear buffer
-        void clearBuffer();
+        static void clearBuffer();
 
         // Interrupt handler
-        void IRQHandler();
+        static void IRQHandler();
 
     private:
         // no copy or assignment
+        DUART();
         DUART(const DUART&);
         void operator=(const DUART&);
 
@@ -117,13 +118,10 @@ class DUART {
         };
 
         // private buffer
-        Buffer _buffer;
+        static Buffer _buffer;
         
-
+        // initialization flag
+        static bool _init;
 };
-
-// single global instance
-extern DUART g_uart;
-
 
 #endif // DUART_H
