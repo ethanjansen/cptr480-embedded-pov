@@ -12,11 +12,11 @@ const DTPM::TPMConfig DTPM::tpmConfigs[] = {
     {DTPM::TPM_0, DTPM::TPM_CH1, DTPM::DIV_4, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 184, 0},     // Blue
 };
 
+// Static var initialization
+bool DTPM::_init;
+
 // nothing initialized
 unsigned DTPM::_tpmInitialized[NUM_TPMS];
-
-// constructor
-DTPM::DTPM() {}
 
 // Initialize TPM module.
 // No interrupts enabled...
@@ -114,6 +114,8 @@ unsigned DTPM::init() {
         }
     }
 
+    // successful init
+    _init = true;
     return 0;
 }
 

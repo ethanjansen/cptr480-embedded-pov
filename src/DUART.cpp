@@ -8,9 +8,9 @@ const DUART::UARTConfig DUART::uartConfigs[] = {
     {UART_0, BAUD_115200, PARITY_NONE, STOP_BITS_1, DATA_BITS_8, NORMAL, LSB_FIRST},
 };
 
-
-// empty constructor
-DUART::DUART() {}
+// static var initialization
+DUART::Buffer DUART::_buffer;
+bool DUART::_init;
 
 // Public UART Initialization API
 // Enable clocks: UART0 (configure clock source), PORTA
@@ -48,7 +48,7 @@ unsigned DUART::init() {
 
     // clear buffer on init
     clearBuffer();
-
+    _init = true;
     return 0;
 }
 
@@ -149,6 +149,8 @@ void DUART::disable() {
                 break;
         }
     }
+
+    _init = false; // Need to reinitialize to use again
 }
 
 // get the number of bytes free in the buffer

@@ -14,23 +14,28 @@ class DPIT {
         // holds interval for each PIT. Indexed by PITName
         static unsigned pitIntervals[NUM_PITNAMES];
 
-        // empty constructor
-        DPIT();
-
         // Initialize PIT clock, interrupts, and enable PIT
-        void init();
+        static void init();
+
+        // Check initialization status
+        static inline bool isInit() { return _init; }
 
         // Set PIT interval (interrupts per second)
-        void setInterruptsPerSec(PITName pit, unsigned interruptsPerSec);
+        static void setInterruptsPerSec(PITName pit, unsigned interruptsPerSec);
 
         // Set PIT interval (seconds per interrupt)
-        void setSecPerInterrupt(PITName pit, unsigned secPerInterrupt);
+        static void setSecPerInterrupt(PITName pit, unsigned secPerInterrupt);
 
         // Stop PIT
-        void stop(PITName pit); // add enum to select which PIT? -- return code?
+        static void stop(PITName pit); // add enum to select which PIT? -- return code?
 
         // Start PIT
-        void start(PITName pit); // add enum to select which PIT? -- return code?
+        static void start(PITName pit); // add enum to select which PIT? -- return code?
+
+        // Partially deterministic sleep.
+        // automatically sets "pit" PIT interval based on "ms", starts and stops "pit".
+        // This is blocking.
+        static void sleep(PITName pit, unsigned ms);
 
         // FUTURE WORK:
         // Start PIT chaining PIT 0 and 1 for 64bit timer
@@ -38,19 +43,19 @@ class DPIT {
         // void startChained(unsigned long interval); // check if other timers running? -- return code?
 
         // PIT interrupt handler
-        void IRQHandler();
+        static void IRQHandler();
 
     private:
         // no copy or assignment
+        DPIT();
         DPIT(const DPIT&);
         void operator=(const DPIT&);
 
-        // I want to have the ability to initialize 2 PITs separately.
-        // I want to start them separately and have them interrupt independently at different times.
-        
-};
+        // private data
+        static bool _init;
 
-// single global instance
-extern DPIT g_pit;
+        // blocking flag
+        static bool _block[NUM_PITNAMES];
+};
 
 #endif

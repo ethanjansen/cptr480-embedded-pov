@@ -2,16 +2,11 @@
 
 // self
 #include "LED.h"
-
 // others
 #include "DGPIO.h"
 #include "DTPM.h"
 #include "DPIT.h"
 
-// Global driver instances
-DGPIO g_gpio;
-DPIT g_pit;
-DTPM g_tpm;
 
 // Private variable initialization
 unsigned LED::_useExpStateTransition = 0;
@@ -26,12 +21,18 @@ LED::LED() {}
 // Set speed to fade and to use exponential or square transitions.
 void LED::init(unsigned speed, LEDPercents maxPercent) {
     // Initialize hardware via their classes
-    g_gpio.Init(); // set up TPM on LED_RED, LED_GREEN, LED_BLUE
-    g_tpm.init(); // Set initial TPM values (match _dutyCycle init)
-    g_pit.init();
+    if (!DGPIO::isInit()) { // set up TPM on LED_RED, LED_GREEN, LED_BLUE
+        DGPIO::init();
+    }
+    if (!DTPM::isInit()) { // Set initial TPM values (match _dutyCycle init)
+        DTPM::init();
+    }
+    if (!DPIT::isInit()) {
+        DPIT::init();
+    }
 
     // Set PIT interrupt frequency (how fast will fading occur)
-    g_pit.setInterruptsPerSec(DPIT::PIT0, speed);
+    DPIT::setInterruptsPerSec(DPIT::PIT0, speed);
 
     // initialize duty Cycles
     if (maxPercent == MAX_PERCENT_EXP) {
@@ -48,13 +49,13 @@ void LED::init(unsigned speed, LEDPercents maxPercent) {
 // Start RGB LED color cycling.
 // Reenables PIT.
 void LED::start() {
-    g_pit.start(DPIT::PIT0);
+    DPIT::start(DPIT::PIT0);
 }
 
 // Stop RGB LED color cycling.
 // Disables PIT.
 void LED::stop() {
-    g_pit.stop(DPIT::PIT0);
+    DPIT::stop(DPIT::PIT0);
 }
 
 // Transition color cycling state.
@@ -76,7 +77,7 @@ void LED::_stateTransitionPulse() {
     switch (_state) {
         case RED:
             _dutyCycle[RED_IDX] = _dutyCycle[RED_IDX] >> 1; // exponential change
-            g_tpm.setDutyCycle(DTPM::TPM_2, DTPM::TPM_CH0, _dutyCycle[RED_IDX], DTPM::EDGE_ALIGNED);
+            DTPM::setDutyCycle(DTPM::TPM_2, DTPM::TPM_CH0, _dutyCycle[RED_IDX], DTPM::EDGE_ALIGNED);
             if (_dutyCycle[RED_IDX] == 0) {
                 _dutyCycle[RED_IDX] = 1; // prep for next cycle
                 _state = RED2;
@@ -84,7 +85,7 @@ void LED::_stateTransitionPulse() {
             break;
         case RED2:
             _dutyCycle[RED_IDX] = _dutyCycle[RED_IDX] << 1; // exponential change
-            g_tpm.setDutyCycle(DTPM::TPM_2, DTPM::TPM_CH0, _dutyCycle[RED_IDX], DTPM::EDGE_ALIGNED);
+            DTPM::setDutyCycle(DTPM::TPM_2, DTPM::TPM_CH0, _dutyCycle[RED_IDX], DTPM::EDGE_ALIGNED);
             if (_dutyCycle[RED_IDX] == MAX_PERCENT_EXP) {
                 _state = RED;
             }
@@ -101,42 +102,42 @@ void LED::_stateTransitionCycle() {
     switch (_state) {
         case RED:
             _dutyCycle[BLUE_IDX] = _dutyCycle[BLUE_IDX] + 3276;
-            g_tpm.setCnV(DTPM::TPM_0, DTPM::TPM_CH1, ((_dutyCycle[BLUE_IDX] * _dutyCycle[BLUE_IDX]) >> 16));
+            DTPM::setCnV(DTPM::TPM_0, DTPM::TPM_CH1, ((_dutyCycle[BLUE_IDX] * _dutyCycle[BLUE_IDX]) >> 16));
             if (_dutyCycle[BLUE_IDX] == MAX_PERCENT_SQR) {
                 _state = MAGENTA;
             }
             break;
         case MAGENTA:
             _dutyCycle[RED_IDX] = _dutyCycle[RED_IDX] - 3276;
-            g_tpm.setCnV(DTPM::TPM_2, DTPM::TPM_CH0, ((_dutyCycle[RED_IDX] * _dutyCycle[RED_IDX]) >> 16));
+            DTPM::setCnV(DTPM::TPM_2, DTPM::TPM_CH0, ((_dutyCycle[RED_IDX] * _dutyCycle[RED_IDX]) >> 16));
             if (_dutyCycle[RED_IDX] == 0) {
                 _state = BLUE;
             }
             break;
         case BLUE:
             _dutyCycle[GREEN_IDX] = _dutyCycle[GREEN_IDX] + 3276;
-            g_tpm.setCnV(DTPM::TPM_2, DTPM::TPM_CH1, ((_dutyCycle[GREEN_IDX] * _dutyCycle[GREEN_IDX]) >> 16));
+            DTPM::setCnV(DTPM::TPM_2, DTPM::TPM_CH1, ((_dutyCycle[GREEN_IDX] * _dutyCycle[GREEN_IDX]) >> 16));
             if (_dutyCycle[GREEN_IDX] == MAX_PERCENT_SQR) {
                 _state = CYAN;
             }
             break;
         case CYAN:
             _dutyCycle[BLUE_IDX] = _dutyCycle[BLUE_IDX] - 3276;
-            g_tpm.setCnV(DTPM::TPM_0, DTPM::TPM_CH1, ((_dutyCycle[BLUE_IDX] * _dutyCycle[BLUE_IDX]) >> 16));
+            DTPM::setCnV(DTPM::TPM_0, DTPM::TPM_CH1, ((_dutyCycle[BLUE_IDX] * _dutyCycle[BLUE_IDX]) >> 16));
             if (_dutyCycle[BLUE_IDX] == 0) {
                 _state = GREEN;
             }
             break;
         case GREEN:
             _dutyCycle[RED_IDX] = _dutyCycle[RED_IDX] + 3276;
-            g_tpm.setCnV(DTPM::TPM_2, DTPM::TPM_CH0, ((_dutyCycle[RED_IDX] * _dutyCycle[RED_IDX]) >> 16));
+            DTPM::setCnV(DTPM::TPM_2, DTPM::TPM_CH0, ((_dutyCycle[RED_IDX] * _dutyCycle[RED_IDX]) >> 16));
             if (_dutyCycle[RED_IDX] == MAX_PERCENT_SQR) {
                 _state = YELLOW;
             }
             break;
         case YELLOW:
             _dutyCycle[GREEN_IDX] = _dutyCycle[GREEN_IDX] - 3276;
-            g_tpm.setCnV(DTPM::TPM_2, DTPM::TPM_CH1, ((_dutyCycle[GREEN_IDX] * _dutyCycle[GREEN_IDX]) >> 16));
+            DTPM::setCnV(DTPM::TPM_2, DTPM::TPM_CH1, ((_dutyCycle[GREEN_IDX] * _dutyCycle[GREEN_IDX]) >> 16));
             if (_dutyCycle[GREEN_IDX] == 0) {
                 _state = RED;
             }

@@ -1,24 +1,25 @@
 #include "DROTENC.h"
-
 // other classes for initalization
 #include "DGPIO.h"
 #include "DTPM.h"
 #include "DUART.h"
 
-// Single instances
-DGPIO g_gpio;
-DTPM g_tpm;
-DUART g_uart;
 
 // static variables
 signed int DROTENC::_position = 0;
 DROTENC::ROTENCState DROTENC::_state = STATE_00;
 
 void DROTENC::init() {
-    // initialize GPIO, TPM, and UART
-    g_tpm.init();
-    g_uart.init();
-    g_gpio.Init(); // do this last for fear of interrupts during initialization
+    // initialize TPM, UART, and GPIO
+    if (!DTPM::isInit()) {
+        DTPM::init();
+    }
+    if (!DUART::isInit()) {
+        DUART::init();
+    }
+    if (!DGPIO::isInit()) {
+        DGPIO::init();
+    }
 }
 
 // sets the current position of the rotary encoder to 0.
@@ -35,7 +36,7 @@ void DROTENC::resetPosition() {
 void DROTENC::controlPosition() {
     switch (_state) {
         case STATE_00:
-            if (g_gpio.Status(DGPIO::ENCODER2)) {
+            if (DGPIO::Status(DGPIO::ENCODER2)) {
                 incrementPosition();
                 _state = STATE_01;
             } else { // don't bother checking other values, only one other change should be possible
@@ -44,7 +45,7 @@ void DROTENC::controlPosition() {
             }
             return;
         case STATE_01:
-            if (g_gpio.Status(DGPIO::ENCODER1)) {
+            if (DGPIO::Status(DGPIO::ENCODER1)) {
                 incrementPosition();
                 _state = STATE_11;
             } else {
@@ -53,7 +54,7 @@ void DROTENC::controlPosition() {
             }
             return;
         case STATE_11:
-            if (!g_gpio.Status(DGPIO::ENCODER2)) {
+            if (!DGPIO::Status(DGPIO::ENCODER2)) {
                 incrementPosition();
                 _state = STATE_10;
             } else {
@@ -62,7 +63,7 @@ void DROTENC::controlPosition() {
             }
             return;
         case STATE_10:
-            if (!g_gpio.Status(DGPIO::ENCODER1)) {
+            if (!DGPIO::Status(DGPIO::ENCODER1)) {
                 incrementPosition();
                 _state = STATE_00;
             } else {
@@ -101,16 +102,16 @@ void DROTENC::_changeTPM() {
     if (abs > MAX_POSITION_INTERNAL) {
         return;
     } else if (_position < 0) {
-        g_tpm.setCnV(DTPM::TPM_0, DTPM::TPM_CH1, ((abs * abs) >> 16)); // blue
+        DTPM::setCnV(DTPM::TPM_0, DTPM::TPM_CH1, ((abs * abs) >> 16)); // blue
     } else if (_position > 0) {
-        g_tpm.setCnV(DTPM::TPM_2, DTPM::TPM_CH0, ((abs * abs) >> 16)); // red
+        DTPM::setCnV(DTPM::TPM_2, DTPM::TPM_CH0, ((abs * abs) >> 16)); // red
     } else {
         // off
-        g_tpm.setCnV(DTPM::TPM_2, DTPM::TPM_CH0, 0); // red
-        g_tpm.setCnV(DTPM::TPM_0, DTPM::TPM_CH1, 0); // blue
+        DTPM::setCnV(DTPM::TPM_2, DTPM::TPM_CH0, 0); // red
+        DTPM::setCnV(DTPM::TPM_0, DTPM::TPM_CH1, 0); // blue
     }
 }
 
 inline void DROTENC::_sendPosition() {
-    g_uart.sendInt(_position/POSITION_MULTIPLIER, 10); // use base 10
+    DUART::sendInt(_position/POSITION_MULTIPLIER, 10); // use base 10
 }

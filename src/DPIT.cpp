@@ -1,12 +1,12 @@
 #include "DPIT.h"
-#include "LED.h"
 #include "MKL25Z4.h"
 
 // PIT Interval Array
 unsigned DPIT::pitIntervals[NUM_PITNAMES] = {0, 0};
 
-// empty Constructor
-DPIT::DPIT() {}
+// static instantiation
+bool DPIT::_init;
+bool DPIT::_block[NUM_PITNAMES];
 
 // Initialize PIT clock, interrupts, and enable PIT
 void DPIT::init() {
@@ -18,6 +18,8 @@ void DPIT::init() {
 
     // PIT master enable (MDIS=0)
     PIT->MCR &= ~PIT_MCR_MDIS_MASK;
+
+    _init = true;
 }
 
 // Set PIT interval (interrupts per second)
@@ -48,13 +50,32 @@ void DPIT::start(PITName pit) {
     PIT->CHANNEL[pit].TCTRL = PIT_TCTRL_TIE_MASK | PIT_TCTRL_TEN_MASK;
 }
 
+// Partially deterministic sleep.
+// automatically sets "pit" PIT interval based on "ms", starts and stops "pit".
+// This is blocking.
+// Does not check for overflow!
+void DPIT::sleep(PITName pit, unsigned ms) {
+    // Set PIT interval
+    pitIntervals[pit] = (DEFAULT_SYSTEM_CLOCK/(((SYSTEM_SIM_CLKDIV1_VALUE>>28)+1)*1000)*ms) - 1;
+    // setup block
+    _block[pit] = true;
+    // Start PIT
+    start(pit);
+    // block
+    while (_block[pit]) {}
+    // Stop PIT
+    stop(pit);
+}
+
 // PIT interrupt handler
 void DPIT::IRQHandler() {
-    // Clear interrupt flag
-    PIT->CHANNEL[0].TFLG = PIT_TFLG_TIF_MASK;
-
-    // color cycle LED
-    g_led.stateTransition();
-
+    for (unsigned i=0; i<NUM_PITNAMES; i++) {
+        if (PIT->CHANNEL[i].TFLG & PIT_TFLG_TIF_MASK) {
+            // Stop blocking
+            _block[i] = false;
+            // Clear interrupt flag
+            PIT->CHANNEL[i].TFLG = PIT_TFLG_TIF_MASK;
+        }
+    }
 }
 

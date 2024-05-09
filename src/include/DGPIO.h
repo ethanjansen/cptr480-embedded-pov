@@ -15,6 +15,10 @@ public:
         SW3,
         UART0_RX,
         UART0_TX,
+        SPI1_MISO,
+        SPI1_MOSI,
+        SPI1_SCK,
+        MOTION_CC,
         NUM_GPIONAMES,
     };
 
@@ -73,31 +77,28 @@ public:
     };
 
     static const GPIOTable gpios[];
-
-    DGPIO();
     
     // Public API
-    void Init();
+    static void init();
+    static inline bool isInit() { return _init; }
 
-    bool Status(GPIOName name);
-    void Set(GPIOName name);
-    void Clear(GPIOName name);
-    void Toggle(GPIOName name);
+    static bool Status(GPIOName name);
+    static void Set(GPIOName name);
+    static void Clear(GPIOName name);
+    static void Toggle(GPIOName name);
 
     // Interrupt Handlers for Ports A and D
-    void IRQHandler();
+    static void IRQHandler();
 
 private:
+    DGPIO();
     DGPIO(const DGPIO&);
     void operator=(const DGPIO&);
+
+    static bool _init;
 
     static unsigned _interruptableGpioIndecies[NUM_GPIONAMES]; // lists the indecies in gpios that have interrupts enabled
     static unsigned _numInterruptableGpioIndecies; // number of GPIOs that can have interrupts
 };
-
-// Every user of the GPIO driver class will get this when they include DGPIO.h.
-// It tells the linker that there is an instance of DGPIO called g_gpio---the one and
-// only instance of the GPIO driver, typically instantiated at the top of main.cpp.
-extern DGPIO g_gpio;
 
 #endif  // DGPIO_H

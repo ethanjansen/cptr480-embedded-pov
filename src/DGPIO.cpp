@@ -3,35 +3,37 @@
 #include "MKL25Z4.h"
 
 // Other classes for interruptHandlers
-#include "DROTENC.h"
+//#include "DROTENC.h" -- unused
 
 // Master list of GPIO lines
 // NOTE: order must match exactly with the GPIOName enum in DGPIO.h!
 // (This is checked at runtime if assertions are enabled.)
 const DGPIO::GPIOTable DGPIO::gpios[] = {
-    //  name        pin    port     i/o  pu/pd  interrupt    mux(alt)  init  interruptHandler
+    //  name        pin    port     i/o  pu/pd  interrupt       mux(alt)     init  interruptHandler
     { LED_RED,       18,  PortB, Output, Float, Disabled,            3,       1,   nullptr                    },  // Big RGB LED on the FRDM-KL25Z board -- active low
     { LED_GREEN,     19,  PortB, Output, Float, Disabled,            1,       1,   nullptr                    },  // use alt 3 for PWM
     { LED_BLUE,       1,  PortD, Output, Float, Disabled,            4,       1,   nullptr                    },
-    { ENCODER1,       4,  PortA, Input,  Float, INT_BothEdges,       1,       0,   DROTENC::controlPosition   },  // Rotary encoder pins have their own pull-ups on the PCB
-    { ENCODER2,       5,  PortA, Input,  Float, INT_BothEdges,       1,       0,   DROTENC::controlPosition   },  
-    { SW2,            0,  PortD, Input,  PU,    INT_RisingEdge,      1,       0,   DROTENC::resetPosition     },  // Push-button switches; internal pull-ups are needed
+    { ENCODER1,       4,  PortA, Input,  Float, Disabled,            1,       0,   nullptr                    },  // Rotary encoder pins have their own pull-ups on the PCB // Both edges -> DROTENC::controlPosition
+    { ENCODER2,       5,  PortA, Input,  Float, Disabled,            1,       0,   nullptr                    },  // Both edges -> DROTENC::controlPosition
+    { SW2,            0,  PortD, Input,  PU,    Disabled,            1,       0,   nullptr                    },  // Push-button switches; internal pull-ups are needed // Rising edge -> DROTENC::resetPosition
     { SW3,            0,  PortB, Input,  PU,    Disabled,            1,       0,   nullptr                    },
     { UART0_RX,       1,  PortA, Input,  Float, Disabled,            2,       0,   nullptr                    }, // UART0
     { UART0_TX,       2,  PortA, Output, Float, Disabled,            2,       0,   nullptr                    },
+    { SPI1_MISO,      6,  PortD, Input,  Float, Disabled,            5,       0,   nullptr                    }, // LSM6DSL SPI1 -- MISO/MOSI use alt 5, SCK uses alt 2
+    { SPI1_MOSI,      7,  PortD, Output, Float, Disabled,            5,       0,   nullptr                    }, // Backwards from schematic
+    { SPI1_SCK,       5,  PortD, Output, Float, Disabled,            2,       0,   nullptr                    },
+    { MOTION_CC,      4,  PortD, Output, Float, Disabled,            1,       1,   nullptr                    }, // LSM6DSL SPI CC -- init high
 };
+
+// static instantiation
+bool DGPIO::_init;
 
 // Private instance of _interruptableGpios[]
 unsigned DGPIO::_interruptableGpioIndecies[NUM_GPIONAMES]; // set at runtime
 unsigned DGPIO::_numInterruptableGpioIndecies = 0;
 
 
-DGPIO::DGPIO()
-{
-}
-
-
-void DGPIO::Init()
+void DGPIO::init()
 {
     PORT_Type *port;
     GPIO_Type *gpio;
@@ -107,6 +109,8 @@ void DGPIO::Init()
             _interruptableGpioIndecies[_numInterruptableGpioIndecies++] = k;
         }
     }
+
+    _init = true;
 }
 
 
