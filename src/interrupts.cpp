@@ -2,9 +2,9 @@
 #include "DGPIO.h"
 #include "DSPI.h"
 #include "DPIT.h"
-#include <stdint.h>
+#include "DUART.h"
 
-volatile uint32_t g_sysTicks = 0;
+volatile unsigned g_sysTicks = 0;
 
 extern "C" {
 
@@ -34,13 +34,13 @@ void PIT_IRQHandler()
     DPIT::IRQHandler();
 }
 
-/* // not used in this lab
+
 void UART0_IRQHandler() {
     // Call the UART0 interrupt handler
     DUART::IRQHandler();
 }
 
-
+/* // not used in this lab
 void TPM0_IRQHandler() {
     // Call the TPM0 interrupt handler
     DTPM::IRQHandler();

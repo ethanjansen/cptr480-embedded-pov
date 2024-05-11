@@ -101,10 +101,10 @@ unsigned DUART::sendString(const char *str) {
     return 0;
 }
 
-// send an int as an ASCII string, using base (2-16). End with newline.
+// send an int as an ASCII string, using base (2-16). End with terminator.
 // Will always use '-' for negative rather than 2's complement.
 // returns 0 on success, 1 if buffer does not have enough space
-unsigned DUART::sendInt(signed num, signed base) {
+unsigned DUART::sendInt(signed num, signed base, char terminator) {
     unsigned maxLength;
 
     // dynamically find max length for common bases (don't forget sign)
@@ -124,10 +124,10 @@ unsigned DUART::sendInt(signed num, signed base) {
             break;
     };
 
-    char str[maxLength+1]; // extra for newline
+    char str[maxLength+1]; // extra for "terminator"
     int2str(num, base, str, maxLength); // 12 is max length of int in base 2???
-    // add newline and swap with null terminator
-    str[maxLength-1] = '\n';
+    // add "terminator" and swap with null terminator
+    str[maxLength-1] = terminator;
     str[maxLength] = '\0';
 
     // send string

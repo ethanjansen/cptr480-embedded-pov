@@ -90,8 +90,9 @@ class DUART {
         static unsigned sendString(const char *str);
 
         // send an int as an ASCII string, using base (2-16).
+        // Specify a terminator (such as a space or newline) to insert after the number.
         // returns 0 on success, 1 if buffer does not have enough space
-        static unsigned sendInt(signed num, signed base);
+        static unsigned sendInt(signed num, signed base, char terminator);
 
         // get the number of bytes free in the buffer
         static unsigned getBufferFreeSpace();
