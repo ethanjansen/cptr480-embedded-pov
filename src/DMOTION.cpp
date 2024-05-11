@@ -1,15 +1,26 @@
 #include "DMOTION.h"
 #include "DSPI.h"
 #include "DGPIO.h"
+#include "DUART.h" // testing
 
 // static var initialization
 bool DMOTION::_init;
+bool DMOTION::_receivedBlockedDataDuringInit;
+bool DMOTION::_inMotionTransaction;
+signed short DMOTION::_accel[3], DMOTION::_gyro[3];
 char DMOTION::_inData[MAXDATA_RAW], DMOTION::_outData[MAXDATA_RAW];
 
 // Public API
 
-// Initialize the LSM6DSL
-void DMOTION::init() {
+// Init.
+// Blocking while LSM6DSL is being initialized.
+// Returns False if successful.
+bool DMOTION::init() {
+    // initialize UART for testing
+    if (DMOTION_LOGGING && !DUART::isInit()) {
+        DUART::init();
+    }
+
     // initalize SPI then GPIO
     if (!DSPI::isInit()) { // using SPI_1 for communication -- ensure config is set in DSPI.h
         DSPI::init();
@@ -19,24 +30,53 @@ void DMOTION::init() {
     }
 
     // LSM6DSL specific initalization...
-    // - rounding
-    // - interrupts
     // - odr = 26Hz for now
-    // - block data update (BDU) -- only ensures low byte matches high byte
+    // - rounding (leave default)
+    // - block data update (BDU) = enabled -- only ensures low byte matches high byte
+    // - power mode (leave default)
+    // - interrupts = both enabled on INT1
+    bool status;
 
-    _init = true;
+    // probe (ensure LSM6DSL is connected)
+    if (!probe()) {
+        return true;
+    }
+
+    // clean start
+    status = _writeRegBlocking(CTRL1_XL, CTRL1_XL_VAL_DEFAULT); // start accel in power down and gryo in high performance (I don't think this is actually necessary)
+    status |= _writeRegBlocking(CTRL2_G, CTRL2_G_VAL_416HZ);
+    status |= _writeRegBlocking(CTRL3_C, CTRL3_C_VAL_RESET); // actual reset
+
+    // probe again, this should also delay things after the reset (ideally for 50us)
+    // At 4MHz Baud, this waits for 40us, which as everyone knows is basically 50us (it seems to be sufficient).
+    if (!probe()) {
+        return true;
+    }
+
+    // setup
+    status |= _writeRegBlocking(CTRL1_XL, CTRL1_XL_VAL_26HZ); // ODR -- do this first to turn on device
+    status |= _writeRegBlocking(CTRL2_G, CTRL2_G_VAL_26HZ);
+    status |= _writeRegBlocking(CTRL3_C, CTRL3_C_VAL_BDU); // BDU
+    status |= _writeRegBlocking(INT2_CTRL, INT2_CTRL_VAL_DEFAULT); // no interrupts on INT2 (prevents hanging)
+    status |= _writeRegBlocking(INT1_CTRL, INT1_CTRL_VAL_BOTH); // interrupts on INT1 -- do I want both interrupts or just one?
+
+    _init = !status;
+
+    // begin first transaction manually -- if we already blocked the automatic transaction
+    if (_receivedBlockedDataDuringInit) {
+        INT1Handler(); // this data could honestly get discarded, but it doesn't matter that much
+    }
+
+    return status;
 }
 
 // Probe if LSM6DSL is connected -- blocking.
 // Looks for whoami register
 bool DMOTION::probe() {
     // Read WHOAMI register, checking if SPI sent data
-    if (_readReg(WHOAMI, 1)) {
+    if (_readRegBlocking(WHOAMI, 1)) {
         return false;
     }
-
-    // wait for probe to complete
-    while (busy()) {} // is there a better way to do this?
 
     // Check if WHOAMI register matches expected value
     return _inData[1] == WHOAMI_VAL; // index 0 is dummy
@@ -48,14 +88,86 @@ bool DMOTION::busy() {
     return DSPI::busy(DSPI::SPI_1);
 }
 
+// Get Accelerometer Data.
+void DMOTION::getAccel(signed short *x, signed short *y, signed short *z) {
+    *x = _accel[0];
+    *y = _accel[1];
+    *z = _accel[2];
+}
+
+// Get Gyroscope Data.
+void DMOTION::getGyro(signed short *x, signed short *y, signed short *z) {
+    *x = _gyro[0];
+    *y = _gyro[1];
+    *z = _gyro[2];
+}
+
+// Get Acceleromter + Gyroscope Data.
+void DMOTION::getMotion(signed short *ax, signed short *ay, signed short *az, signed short *gx, signed short *gy, signed short *gz) {
+    getAccel(ax, ay, az);
+    getGyro(gx, gy, gz);
+}
+
 
 // Handler
 
 // End Transaction - part of interrupt handler.
 // should only be called from DSPI to handle transaction finished.
 // This sets GPIO CC pin idle high to end transaction.
+// Special case for "getMotion()" data.
 void DMOTION::endTransaction() {
     DGPIO::Set(DGPIO::MOTION_CC);
+
+    if (_inMotionTransaction) {
+        // parse data -- should I check some length for proper data access?
+        _gyro[0] = (_inData[2] << 8) | _inData[1];
+        _gyro[1] = (_inData[4] << 8) | _inData[3];
+        _gyro[2] = (_inData[6] << 8) | _inData[5];
+        _accel[0] = (_inData[8] << 8) | _inData[7];
+        _accel[1] = (_inData[10] << 8) | _inData[9];
+        _accel[2] = (_inData[12] << 8) | _inData[11];
+
+        // testing: UART logging (this is quite a bit for an interrupt handler, so only use when logging)
+        if (DMOTION_LOGGING) {
+            DUART::sendString("Gyro: ");
+            DUART::sendInt(_gyro[0], 10, ' ');
+            DUART::sendInt(_gyro[1], 10, ' ');
+            DUART::sendInt(_gyro[2], 10, '\n');
+            DUART::sendString("Accel: ");
+            DUART::sendInt(_accel[0], 10, ' ');
+            DUART::sendInt(_accel[1], 10, ' ');
+            DUART::sendInt(_accel[2], 10, '\n');
+        }
+
+        // toggle flag
+        _inMotionTransaction = false;
+    }
+}
+
+// INT1/INT2 interrupt handlers.
+// These should be called from GPIO interrupt handler.
+void DMOTION::INT1Handler() { // assuming both gyro and accel interrupts on INT1, but read both
+    // Don't perform transaction during init
+    if (!_init) {
+        _receivedBlockedDataDuringInit = true;
+        return;
+    }
+
+    // read data and set flag
+    _inMotionTransaction = !_readReg(OUTX_L_G, 12); // 6 bytes of gyro, 6 bytes of accel
+}
+
+void DMOTION::INT2Handler() { // DO NOT USE! -- currently just hangs
+    while (true) {/* hang */}
+
+    // Don't perform transaction during init
+    if (!_init) {
+        _receivedBlockedDataDuringInit = true;
+        return;
+    }
+    
+    // read data and set flag
+    _inMotionTransaction = !_readReg(OUTX_L_G, 12); // 6 bytes of gyro, 6 bytes of accel
 }
 
 
@@ -101,4 +213,30 @@ bool DMOTION::_writeReg(LSM6DSLAddr addr, char data) {
     }
 
     return status;
+}
+
+// blocking _writeReg for setup.
+bool DMOTION::_writeRegBlocking(LSM6DSLAddr addr, char data) {
+    // write reg, checking if SPI sent data
+    if (_writeReg(addr, data)) {
+        return true;
+    }
+
+    // wait for write to complete
+    while (busy()) {}
+
+    return false;
+}
+
+// blocking _readReg for testing.
+bool DMOTION::_readRegBlocking(LSM6DSLAddr addr, unsigned length) {
+    // read reg, checking if SPI sent data
+    if (_readReg(addr, length)) {
+        return true;
+    }
+
+    // wait for read to complete
+    while (busy()) {}
+
+    return false;
 }

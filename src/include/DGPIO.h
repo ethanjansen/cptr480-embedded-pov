@@ -19,6 +19,8 @@ public:
         SPI1_MOSI,
         SPI1_SCK,
         MOTION_CC,
+        MOTION_INT1,
+        MOTION_INT2,
         NUM_GPIONAMES,
     };
 

@@ -10,9 +10,6 @@ int main() {
     // Let DMOTION class initialize hardware.
     DMOTION::init();
 
-    // Probe for LSM6DSL
-    bool exists = DMOTION::probe(); // I will check this with debugger
-
     while (1)
     {
         // mining bitcoin...

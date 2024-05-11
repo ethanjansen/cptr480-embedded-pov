@@ -39,6 +39,7 @@ class DSPI {
     // Maybe add more in the future...
     // Format: SPPR[2:0],SPR[3:0] (in binary).
     // Assume 48MHz system clock input (if using SPI_0, the SPR[3:0] value will be reduced automatically).
+    // 4 MHz seems to be the limit. Haun did not have much success at 8MHz and at 6MHz I am not receiving all bits...
     enum SPIBaudRate {
         BAUD_75KHZ =  0b1000110, // SPPR = 0b100, SPR = 0b0110
         BAUD_150KHZ = 0b1000101, // SPPR = 0b100, SPR = 0b0101
@@ -48,13 +49,9 @@ class DSPI {
         BAUD_2MHZ =   0b0100010, // SPPR = 0b010, SPR = 0b0010
         BAUD_3MHZ =   0b0110001, // SPPR = 0b011, SPR = 0b0001
         BAUD_4MHZ =   0b0100001, // SPPR = 0b010, SPR = 0b0001
-        BAUD_6MHZ =   0b0010001, // SPPR = 0b001, SPR = 0b0001
-        BAUD_12MHZ =  0b0000001, // SPPR = 0b000, SPR = 0b0001
+        //BAUD_6MHZ =   0b0010001, // SPPR = 0b001, SPR = 0b0001
+        //BAUD_12MHZ =  0b0000001, // SPPR = 0b000, SPR = 0b0001
     };
-
-    // TODO: think about baud rates (and prescale divisors): SPPR and SPR
-    // Common Baud Rates: 100kHz, 400kHz, 1MHz, 2MHz, 4MHz, 8MHz, 10MHz? (let 10MHz be max, though consider input clocks)
-    // LSM6DSL Rate: 10MHz (max)
 
     // Optional interrupt handler callback.
     // This will be called when the transaction is finished.

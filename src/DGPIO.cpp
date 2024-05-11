@@ -4,6 +4,7 @@
 
 // Other classes for interruptHandlers
 //#include "DROTENC.h" -- unused
+#include "DMOTION.h"
 
 // Master list of GPIO lines
 // NOTE: order must match exactly with the GPIOName enum in DGPIO.h!
@@ -23,6 +24,8 @@ const DGPIO::GPIOTable DGPIO::gpios[] = {
     { SPI1_MOSI,      7,  PortD, Output, Float, Disabled,            5,       0,   nullptr                    }, // Backwards from schematic
     { SPI1_SCK,       5,  PortD, Output, Float, Disabled,            2,       0,   nullptr                    },
     { MOTION_CC,      4,  PortD, Output, Float, Disabled,            1,       1,   nullptr                    }, // LSM6DSL SPI CC -- init high
+    { MOTION_INT1,    3,  PortD, Input,  Float, INT_RisingEdge,      1,       0,   DMOTION::INT1Handler       }, // LSM6DSL Interrupts -- this is backwards from the schematic
+    { MOTION_INT2,    2,  PortD, Input,  Float, INT_RisingEdge,      1,       0,   DMOTION::INT2Handler       },
 };
 
 // static instantiation
