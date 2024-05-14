@@ -2,7 +2,7 @@
 #define DTPM_H
 
 // Driver for TPM module.
-// Only enables edge-aligned PWM output.
+// Supports edge-aligned and center-aligned PWM modes, as well as input capture mode
 class DTPM {
     public:
         // enums.
@@ -41,26 +41,36 @@ class DTPM {
         };
 
         // PWM Modes
-        enum PWMMode {
-            EDGE_ALIGNED,
-            CENTER_ALIGNED,
+        // TOOD: check values
+        enum TPMMode {
+            PWM_EDGE_ALIGNED,
+            PWM_CENTER_ALIGNED,
+            INPUT_CAPTURE,
         };
 
-        // PWM Polarity
-        enum PWMPolarity {
-            LOW_ON_MATCH, // 0 on match, 1 on reload
-            HIGH_ON_MATCH, // 1 on match, 0 on reload
+        // Granular mode settings - PWM polary and input capture edge
+        // TOOD: check values
+        enum TPMModeSetting {
+            PWM_LOW_ON_MATCH, // PWM: 0 on match, 1 on reload
+            PWM_HIGH_ON_MATCH, // PWM: 1 on match, 0 on reload
+            CAPTURE_RISING_EDGE, // Input Capture: capture on rising edge
+            CAPTURE_FALLING_EDGE, // Input Capture: capture on falling edge
+            CAPTURE_BOTH_EDGES, // Input Capture: capture on both edges
         };
+
+        // Interrupt Handler callback
+        // This is optional, interrupt flags will be cleared before this is called
+        typedef void (*interruptCallback)(void);
 
         // TPM Configuration struct.
         struct TPMConfig {
             TPMName tpm;
             TPMChannel channel;
             TPMPrescaleDivisor prescalerDivisor;
-            PWMMode pwmMode;
-            PWMPolarity pwmPolarity;
+            TPMMode tpmMode;
+            TPMModeSetting tpmModeSetting;
             unsigned frequency;
-            unsigned dutyCyclePercent;
+            unsigned dutyCyclePercent; // ignored for input capture mode
         };
 
         // TPM initial module configuration
@@ -75,29 +85,31 @@ class DTPM {
         static inline bool isInit() { return _init; }
 
         // Set PWM duty cycle.
-        // expects dutyCyclePercent to be between 0 and 100.
-        // returns channel CnV on success, negative on failure
-        static signed setDutyCycle(TPMName tpm, TPMChannel channel, unsigned dutyCyclePercent, PWMMode pwmMode);
+        // expects dutyCyclePercent to be between 0 and 10000 (0-100.00%).
+        // This is not applicable in input capture mode.
+        // returns channel CnV on success, negative on failure.
+        static signed setDutyCycle(TPMName tpm, TPMChannel channel, unsigned dutyCyclePercent, TPMMode pwmMode);
 
-        // Set PWM CnV directly
-        // expects cnv between 0 and 65535
+        // Set PWM CnV directly.
+        // expects cnv between 0 and 65535.
+        // This is not applicable in input capture mode.
         // returns channel CnV on success, negative on failure.
         static signed setCnV(TPMName tpm, TPMChannel channel, unsigned cnv);
 
         // Configures module MOD from freq, prescaleDivisor and pwmMode.
         // returns module MOD on success, non-positive on failure
-        static signed setFrequency(TPMName tpm, unsigned freq, TPMPrescaleDivisor prescalerDivisor, PWMMode pwmMode);
+        static signed setFrequency(TPMName tpm, unsigned freq, TPMPrescaleDivisor prescalerDivisor, TPMMode tpmMode);
 
         // Start PWM module.
-        // can control individual channel via setDutyCycle(dutyCyclePercent=%)
+        // can control individual channel via setDutyCycle(dutyCyclePercent=%) (in PWM mode).
         static void start(TPMName tpm);
 
         // Stop PWM module.
-        // can control individual channel via setDutyCycle(dutyCyclePercent=0)
+        // can control individual channel via setDutyCycle(dutyCyclePercent=0) (in PWM mode).
         static void stop(TPMName tpm);
 
         // interrupt handler.
-        // currently hangs the system -- don't enable.
+        // Checks TPM channels in tpmConfigs for interrupt flags, clears flags, and calls interruptCallback.
         static void IRQHandler();
 
     private:
