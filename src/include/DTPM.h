@@ -71,6 +71,8 @@ class DTPM {
             TPMModeSetting tpmModeSetting;
             unsigned frequency;
             unsigned dutyCyclePercent; // ignored for input capture mode
+            interruptCallback overflowInterrupt; // applies to all channels on TPM_x
+            interruptCallback channelInterrupt; // TPM_x channel specific interrupt
         };
 
         // TPM initial module configuration
