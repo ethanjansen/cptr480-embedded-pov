@@ -51,6 +51,7 @@ set(SRC_FILES
         # other classes
 #       src/LED.cpp
 #       src/Morse.cpp
+        src/Random.cpp
 
         # Device files
 	device/startup_MKL25Z4.s
