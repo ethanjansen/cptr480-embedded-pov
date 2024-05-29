@@ -40,6 +40,14 @@ class DTPM {
             DIV_128,
         };
 
+        // TPM DMA Modes
+        enum TPMDMAMode {
+            DMA_DISABLED,
+            DMA_MATCH = 1, // DMA trigger on TPM channel match
+            DMA_OVERFLOW = 0x100, // DMA trigger on TPM overflow
+            DMA_BOTH = DMA_MATCH | DMA_OVERFLOW,
+        };
+
         // PWM Modes
         enum PWMMode {
             EDGE_ALIGNED,
@@ -57,6 +65,7 @@ class DTPM {
             TPMName tpm;
             TPMChannel channel;
             TPMPrescaleDivisor prescalerDivisor;
+            TPMDMAMode dmaMode;
             PWMMode pwmMode;
             PWMPolarity pwmPolarity;
             unsigned frequency;
@@ -107,7 +116,7 @@ class DTPM {
         void operator=(const DTPM&);
 
         // Status flags for if each TPM is initialized. Holds the TPM MOD value.
-        // This prevents multiple frequencies, modes, and prescalerDivisors from being set on the same module.
+        // This prevents multiple frequencies, modes, DMA enables, and prescalerDivisors from being set on the same module.
         static unsigned _tpmInitialized[NUM_TPMS];
 
         // Status flag for if the TPM module is initialized.
