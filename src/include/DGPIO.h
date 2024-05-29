@@ -6,21 +6,26 @@ class DGPIO
 public:
     enum GPIOName
     {
-        LED_RED = 0,
-        LED_GREEN,
-        LED_BLUE,
-        ENCODER1,
-        ENCODER2,
-        SW2,
-        SW3,
-        UART0_RX,
-        UART0_TX,
-        SPI1_MISO,
-        SPI1_MOSI,
-        SPI1_SCK,
-        MOTION_CC,
-        MOTION_INT1,
-        MOTION_INT2,
+        // LED_RED = 0,
+        // LED_GREEN,
+        // LED_BLUE,
+        // ENCODER1,
+        // ENCODER2,
+        // SW2,
+        // SW3,
+        // UART0_RX,
+        // UART0_TX,
+        // SPI1_MISO,
+        // SPI1_MOSI,
+        // SPI1_SCK,
+        // MOTION_CC,
+        // MOTION_INT1,
+        // MOTION_INT2,
+        WAVE0,
+        WAVE1,
+        WAVE2,
+        WAVE3,
+        WAVE4,
         NUM_GPIONAMES,
     };
 
@@ -88,6 +93,9 @@ public:
     static void Set(GPIOName name);
     static void Clear(GPIOName name);
     static void Toggle(GPIOName name);
+
+    static void *getOutputRegister(GPIOName name);
+    static void *getInputRegister(GPIOName name);
 
     // Interrupt Handlers for Ports A and D
     static void IRQHandler();

@@ -4,28 +4,33 @@
 
 // Other classes for interruptHandlers
 //#include "DROTENC.h" -- unused
-#include "DMOTION.h"
+//#include "DMOTION.h" -- unused
 
 // Master list of GPIO lines
 // NOTE: order must match exactly with the GPIOName enum in DGPIO.h!
 // (This is checked at runtime if assertions are enabled.)
 const DGPIO::GPIOTable DGPIO::gpios[] = {
     //  name        pin    port     i/o  pu/pd  interrupt       mux(alt)     init  interruptHandler
-    { LED_RED,       18,  PortB, Output, Float, Disabled,            3,       1,   nullptr                    },  // Big RGB LED on the FRDM-KL25Z board -- active low
-    { LED_GREEN,     19,  PortB, Output, Float, Disabled,            1,       1,   nullptr                    },  // use alt 3 for PWM
-    { LED_BLUE,       1,  PortD, Output, Float, Disabled,            4,       1,   nullptr                    },
-    { ENCODER1,       4,  PortA, Input,  Float, Disabled,            1,       0,   nullptr                    },  // Rotary encoder pins have their own pull-ups on the PCB // Both edges -> DROTENC::controlPosition
-    { ENCODER2,       5,  PortA, Input,  Float, Disabled,            1,       0,   nullptr                    },  // Both edges -> DROTENC::controlPosition
-    { SW2,            0,  PortD, Input,  PU,    Disabled,            1,       0,   nullptr                    },  // Push-button switches; internal pull-ups are needed // Rising edge -> DROTENC::resetPosition
-    { SW3,            0,  PortB, Input,  PU,    Disabled,            1,       0,   nullptr                    },
-    { UART0_RX,       1,  PortA, Input,  Float, Disabled,            2,       0,   nullptr                    }, // UART0
-    { UART0_TX,       2,  PortA, Output, Float, Disabled,            2,       0,   nullptr                    },
-    { SPI1_MISO,      6,  PortD, Input,  Float, Disabled,            5,       0,   nullptr                    }, // LSM6DSL SPI1 -- MISO/MOSI use alt 5, SCK uses alt 2
-    { SPI1_MOSI,      7,  PortD, Output, Float, Disabled,            5,       0,   nullptr                    }, // Backwards from schematic
-    { SPI1_SCK,       5,  PortD, Output, Float, Disabled,            2,       0,   nullptr                    },
-    { MOTION_CC,      4,  PortD, Output, Float, Disabled,            1,       1,   nullptr                    }, // LSM6DSL SPI CC -- init high
-    { MOTION_INT1,    3,  PortD, Input,  Float, INT_RisingEdge,      1,       0,   DMOTION::INT1Handler       }, // LSM6DSL Interrupts -- this is backwards from the schematic
-    { MOTION_INT2,    2,  PortD, Input,  Float, INT_RisingEdge,      1,       0,   DMOTION::INT2Handler       },
+    // { LED_RED,       18,  PortB, Output, Float, Disabled,            3,       1,   nullptr                    },  // Big RGB LED on the FRDM-KL25Z board -- active low
+    // { LED_GREEN,     19,  PortB, Output, Float, Disabled,            1,       1,   nullptr                    },  // use alt 3 for PWM
+    // { LED_BLUE,       1,  PortD, Output, Float, Disabled,            4,       1,   nullptr                    },
+    // { ENCODER1,       4,  PortA, Input,  Float, Disabled,            1,       0,   nullptr                    },  // Rotary encoder pins have their own pull-ups on the PCB // Both edges -> DROTENC::controlPosition
+    // { ENCODER2,       5,  PortA, Input,  Float, Disabled,            1,       0,   nullptr                    },  // Both edges -> DROTENC::controlPosition
+    // { SW2,            0,  PortD, Input,  PU,    Disabled,            1,       0,   nullptr                    },  // Push-button switches; internal pull-ups are needed // Rising edge -> DROTENC::resetPosition
+    // { SW3,            0,  PortB, Input,  PU,    Disabled,            1,       0,   nullptr                    },
+    // { UART0_RX,       1,  PortA, Input,  Float, Disabled,            2,       0,   nullptr                    }, // UART0
+    // { UART0_TX,       2,  PortA, Output, Float, Disabled,            2,       0,   nullptr                    },
+    // { SPI1_MISO,      6,  PortD, Input,  Float, Disabled,            5,       0,   nullptr                    }, // LSM6DSL SPI1 -- MISO/MOSI use alt 5, SCK uses alt 2
+    // { SPI1_MOSI,      7,  PortD, Output, Float, Disabled,            5,       0,   nullptr                    }, // Backwards from schematic
+    // { SPI1_SCK,       5,  PortD, Output, Float, Disabled,            2,       0,   nullptr                    },
+    // { MOTION_CC,      4,  PortD, Output, Float, Disabled,            1,       1,   nullptr                    }, // LSM6DSL SPI CC -- init high
+    // { MOTION_INT1,    3,  PortD, Input,  Float, INT_RisingEdge,      1,       0,   DMOTION::INT1Handler       }, // LSM6DSL Interrupts -- this is backwards from the schematic
+    // { MOTION_INT2,    2,  PortD, Input,  Float, INT_RisingEdge,      1,       0,   DMOTION::INT2Handler       },
+    { WAVE0,            0,  PortE, Output, Float, Disabled,            1,       0,   nullptr                    }, // Waveform generator
+    { WAVE1,            1,  PortE, Output, Float, Disabled,            1,       0,   nullptr                    },
+    { WAVE2,            2,  PortE, Output, Float, Disabled,            1,       0,   nullptr                    },
+    { WAVE3,            3,  PortE, Output, Float, Disabled,            1,       0,   nullptr                    },
+    { WAVE4,            4,  PortE, Output, Float, Disabled,            1,       0,   nullptr                    },
 };
 
 // static instantiation
@@ -146,6 +151,18 @@ void DGPIO::Toggle(GPIOName name)
 {
     GPIO_Type *gpio = (GPIO_Type *)(GPIOA_BASE + gpios[name].port * 0x0040);
     gpio->PTOR = (1 << gpios[name].pin);
+}
+
+
+// Get output register address for GPIO (PDOR).
+void *DGPIO::getOutputRegister(GPIOName name) {
+    return (void *)(GPIOA_BASE + gpios[name].port * 0x0040); // PDOR is base register
+}
+
+
+// Get input register address for GPIO (PDIR).
+void *DGPIO::getInputRegister(GPIOName name) {
+    return (void *)(GPIOA_BASE + gpios[name].port * 0x0040 + 0x10); // PDIR is base register + 0x10
 }
 
 

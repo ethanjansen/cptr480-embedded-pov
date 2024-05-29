@@ -6,10 +6,11 @@
 // (some combinations are not possible due to 16bit limitation). It is your job to ensure that the prescale divisor 
 // will suite your frequency and dutyCycle needs.
 const DTPM::TPMConfig DTPM::tpmConfigs[] = {
-//  {TPMName,     TPMChannel, TPMPrescaleDivisor, PWMMode,        PWMPolarity, frequency, dutyCyclePercent }
-    {DTPM::TPM_2, DTPM::TPM_CH0, DTPM::DIV_4, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 184, 0},  // Red
-//    {DTPM::TPM_2, DTPM::TPM_CH1, DTPM::DIV_4, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 184, 0},     // Green -- unused
-    {DTPM::TPM_0, DTPM::TPM_CH1, DTPM::DIV_4, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 184, 0},     // Blue
+//  {TPMName,     TPMChannel, TPMPrescaleDivisor, DMAMode, PWMMode, PWMPolarity, frequency, dutyCyclePercent }
+//    {DTPM::TPM_2, DTPM::TPM_CH0, DTPM::DIV_4, DTPM::DMA_DISABLED, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 184, 0},     // Red  -- unused
+//    {DTPM::TPM_2, DTPM::TPM_CH1, DTPM::DIV_4, DTPM::DMA_DISABLED, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 184, 0},     // Green -- unused
+//    {DTPM::TPM_0, DTPM::TPM_CH1, DTPM::DIV_4, DTPM::DMA_DISABLED, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 184, 0},     // Blue  -- unused
+    {DTPM::TPM_0, DTPM::TPM_CH2, DTPM::DIV_1, DTPM::DMA_OVERFLOW, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 2000000, 0},     // Ignore channel, but use for 2MHz DMA trigger
 };
 
 // Static var initialization
@@ -33,8 +34,8 @@ unsigned DTPM::init() {
                     // module-level stuff
                     // Enable TPM clock
                     SIM->SCGC6 |= SIM_SCGC6_TPM0_MASK;
-                    // Set PWM mode, clock enable, and prescale divisior
-                    TPM0->SC |= TPM_SC_CPWMS(tpmConfigs[i].pwmMode) | TPM_SC_CMOD(1) | TPM_SC_PS(tpmConfigs[i].prescalerDivisor);
+                    // Set PWM mode, clock enable, prescale divisior, and dma mode
+                    TPM0->SC |= TPM_SC_CPWMS(tpmConfigs[i].pwmMode) | TPM_SC_CMOD(1) | TPM_SC_PS(tpmConfigs[i].prescalerDivisor) | (tpmConfigs[i].dmaMode & TPM_SC_DMA_MASK);
                     // Set MOD value
                     signed mod = setFrequency(tpmConfigs[i].tpm, tpmConfigs[i].frequency, tpmConfigs[i].prescalerDivisor, tpmConfigs[i].pwmMode);
                     if (mod > 0) {
@@ -48,8 +49,8 @@ unsigned DTPM::init() {
                 if (tpmConfigs[i].channel >= NUM_TPM0CHANNELS) {
                     return 1; // invalid channel
                 }
-                // Set channel TPM to PWM and set polarity
-                TPM0->CONTROLS[tpmConfigs[i].channel].CnSC |= TPM_CnSC_MSB_MASK | TPM_CnSC_ELSB_MASK | TPM_CnSC_ELSA(tpmConfigs[i].pwmPolarity);
+                // Set channel TPM to PWM, polarity, and dma mode
+                TPM0->CONTROLS[tpmConfigs[i].channel].CnSC |= TPM_CnSC_MSB_MASK | TPM_CnSC_ELSB_MASK | TPM_CnSC_ELSA(tpmConfigs[i].pwmPolarity) | TPM_CnSC_DMA(tpmConfigs[i].dmaMode);
                 // Set channel duty cycle
                 if (setDutyCycle(tpmConfigs[i].tpm, tpmConfigs[i].channel, tpmConfigs[i].dutyCyclePercent, tpmConfigs[i].pwmMode) < 0) {
                     return 1; // invalid duty cycle given frequency
@@ -60,8 +61,8 @@ unsigned DTPM::init() {
                     // module-level stuff
                     // Enable TPM clock
                     SIM->SCGC6 |= SIM_SCGC6_TPM1_MASK;
-                    // Set PWM mode, clock enable, and prescale divisior
-                    TPM1->SC |= TPM_SC_CPWMS(tpmConfigs[i].pwmMode) | TPM_SC_CMOD(1) | TPM_SC_PS(tpmConfigs[i].prescalerDivisor);
+                    // Set PWM mode, clock enable, prescale divisior, and dma mode
+                    TPM1->SC |= TPM_SC_CPWMS(tpmConfigs[i].pwmMode) | TPM_SC_CMOD(1) | TPM_SC_PS(tpmConfigs[i].prescalerDivisor) | (tpmConfigs[i].dmaMode & TPM_SC_DMA_MASK);
                     // Set MOD value
                     signed mod = setFrequency(tpmConfigs[i].tpm, tpmConfigs[i].frequency, tpmConfigs[i].prescalerDivisor, tpmConfigs[i].pwmMode);
                     if (mod > 0) {
@@ -75,8 +76,8 @@ unsigned DTPM::init() {
                 if (tpmConfigs[i].channel >= NUM_TPM1CHANNELS) {
                     return 1; // invalid channel
                 }
-                // Set channel TPM to PWM and set polarity
-                TPM1->CONTROLS[tpmConfigs[i].channel].CnSC |= TPM_CnSC_MSB_MASK | TPM_CnSC_ELSB_MASK | TPM_CnSC_ELSA(tpmConfigs[i].pwmPolarity);
+                // Set channel TPM to PWM, polarity, and dma mode
+                TPM1->CONTROLS[tpmConfigs[i].channel].CnSC |= TPM_CnSC_MSB_MASK | TPM_CnSC_ELSB_MASK | TPM_CnSC_ELSA(tpmConfigs[i].pwmPolarity) | TPM_CnSC_DMA(tpmConfigs[i].dmaMode);
                 // Set channel duty cycle
                 if (setDutyCycle(tpmConfigs[i].tpm, tpmConfigs[i].channel, tpmConfigs[i].dutyCyclePercent, tpmConfigs[i].pwmMode) < 0) {
                     return 1; // invalid duty cycle given frequency
@@ -87,8 +88,8 @@ unsigned DTPM::init() {
                     // module-level stuff
                     // Enable TPM clock
                     SIM->SCGC6 |= SIM_SCGC6_TPM2_MASK;
-                    // Set PWM mode, clock enable, and prescale divisior
-                    TPM2->SC |= TPM_SC_CPWMS(tpmConfigs[i].pwmMode) | TPM_SC_CMOD(1) | TPM_SC_PS(tpmConfigs[i].prescalerDivisor);
+                    // Set PWM mode, clock enable, prescale divisior, and dma mode
+                    TPM2->SC |= TPM_SC_CPWMS(tpmConfigs[i].pwmMode) | TPM_SC_CMOD(1) | TPM_SC_PS(tpmConfigs[i].prescalerDivisor) | (tpmConfigs[i].dmaMode & TPM_SC_DMA_MASK);
                     // Set MOD value
                     signed mod = setFrequency(tpmConfigs[i].tpm, tpmConfigs[i].frequency, tpmConfigs[i].prescalerDivisor, tpmConfigs[i].pwmMode);
                     if (mod > 0) {
@@ -102,8 +103,8 @@ unsigned DTPM::init() {
                 if (tpmConfigs[i].channel >= NUM_TPM2CHANNELS) {
                     return 1; // invalid channel
                 }
-                // Set channel TPM to PWM and set polarity
-                TPM2->CONTROLS[tpmConfigs[i].channel].CnSC |= TPM_CnSC_MSB_MASK | TPM_CnSC_ELSB_MASK | TPM_CnSC_ELSA(tpmConfigs[i].pwmPolarity);
+                // Set channel TPM to PWM, polarity, and dma mode
+                TPM2->CONTROLS[tpmConfigs[i].channel].CnSC |= TPM_CnSC_MSB_MASK | TPM_CnSC_ELSB_MASK | TPM_CnSC_ELSA(tpmConfigs[i].pwmPolarity) | TPM_CnSC_DMA(tpmConfigs[i].dmaMode);
                 // Set channel duty cycle
                 if (setDutyCycle(tpmConfigs[i].tpm, tpmConfigs[i].channel, tpmConfigs[i].dutyCyclePercent, tpmConfigs[i].pwmMode) < 0) {
                     return 1; // invalid duty cycle given frequency
