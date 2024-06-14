@@ -1,8 +1,8 @@
 // C-linkage interrupt-handler stubs to call the actual handlers inside C++ classes
 //#include "DGPIO.h"
-//#include "DSPI.h"
-//#include "DPIT.h"
-//#include "DUART.h"
+#include "DSPI.h"
+#include "DPIT.h"
+#include "DUART.h" // testing
 #include "DDMA.h"
 
 volatile unsigned g_sysTicks = 0;
@@ -14,7 +14,7 @@ void SysTick_Handler()
     g_sysTicks++;
 }
 
-/* // not used in this lab
+/* // not while testing
 void PORTA_IRQHandler()
 {
     // Call the GPIO interrupt handler
@@ -27,7 +27,7 @@ void PORTD_IRQHandler()
     // Call the GPIO interrupt handler
     DGPIO::IRQHandler();
 }
-
+*/
 
 void PIT_IRQHandler()
 {
@@ -41,7 +41,7 @@ void UART0_IRQHandler() {
     DUART::IRQHandler();
 }
 
-
+/* // not used for the project
 void TPM0_IRQHandler() {
     // Call the TPM0 interrupt handler
     DTPM::IRQHandler();
@@ -58,7 +58,7 @@ void TPM2_IRQHandler() {
     // Call the TPM2 interrupt handler
     DTPM::IRQHandler();
 }
-
+*/
 
 void SPI0_IRQHandler() {
     // call the SPI interrupt handler
@@ -70,7 +70,7 @@ void SPI1_IRQHandler() {
     // call the SPI interrupt handler
     DSPI::IRQHandler();
 }
-*/
+
 
 void DMA0_IRQHandler() {
     // Call the DMA interrupt handler

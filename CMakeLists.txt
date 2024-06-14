@@ -37,17 +37,22 @@ set(SRC_FILES
         src/interrupts.cpp
 
         # helpers
-#       src/int2str.cpp
+        src/int2str.cpp
 
         # drivers
         src/DGPIO.cpp
         src/DDMA.cpp
-#       src/DMOTION.cpp
-#       src/DPIT.cpp
+        src/DLEDS.cpp
+        src/DMOTION.cpp
+        src/DPIT.cpp
 #       src/DROTENC.cpp
-#       src/DSPI.cpp
+        src/DSPI.cpp
         src/DTPM.cpp
-#       src/DUART.cpp
+        src/DUART.cpp
+
+        # data
+        #src/rgb_data.cpp
+        src/rgb_data2.cpp
 
         # other classes
 #       src/LED.cpp

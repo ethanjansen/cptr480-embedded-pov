@@ -30,11 +30,12 @@ bool DMOTION::init() {
     }
 
     // LSM6DSL specific initalization...
-    // - odr = 26Hz for now
+    // - odr = 833Hz
+    // - precision = 500dps
     // - rounding (leave default)
     // - block data update (BDU) = enabled -- only ensures low byte matches high byte
     // - power mode (leave default)
-    // - interrupts = both enabled on INT1
+    // - interrupts = both enabled on INT1 (Not for Project!!!!)
     bool status;
 
     // probe (ensure LSM6DSL is connected)
@@ -54,18 +55,13 @@ bool DMOTION::init() {
     }
 
     // setup
-    status |= _writeRegBlocking(CTRL1_XL, CTRL1_XL_VAL_26HZ); // ODR -- do this first to turn on device
-    status |= _writeRegBlocking(CTRL2_G, CTRL2_G_VAL_26HZ);
+    //status |= _writeRegBlocking(CTRL1_XL, CTRL1_XL_VAL_833HZ); // ODR -- do this first to turn on device
+    status |= _writeRegBlocking(CTRL2_G, CTRL2_G_VAL_833HZ | CTRL2_G_VAL_500DPS); // Project: not synced so make fast and no slower than 250HZ. However, data consistency is worse (despite BDU) passed 1660Hz.
     status |= _writeRegBlocking(CTRL3_C, CTRL3_C_VAL_BDU); // BDU
     status |= _writeRegBlocking(INT2_CTRL, INT2_CTRL_VAL_DEFAULT); // no interrupts on INT2 (prevents hanging)
-    status |= _writeRegBlocking(INT1_CTRL, INT1_CTRL_VAL_BOTH); // interrupts on INT1 -- do I want both interrupts or just one?
+    status |= _writeRegBlocking(INT1_CTRL, INT1_CTRL_VAL_DEFAULT); // no interrupts on INT2 (prevents hanging)
 
     _init = !status;
-
-    // begin first transaction manually -- if we already blocked the automatic transaction
-    if (_receivedBlockedDataDuringInit) {
-        INT1Handler(); // this data could honestly get discarded, but it doesn't matter that much
-    }
 
     return status;
 }
@@ -102,10 +98,30 @@ void DMOTION::getGyro(signed short *x, signed short *y, signed short *z) {
     *z = _gyro[2];
 }
 
+// Get Gyroscope Z -- local copy (only need this for Project)
+// Includes correction factor
+void DMOTION::getGyroZ(signed short *z) {
+    *z = _gyro[2]+CORRECTION_FACTOR;
+}
+
 // Get Acceleromter + Gyroscope Data.
 void DMOTION::getMotion(signed short *ax, signed short *ay, signed short *az, signed short *gx, signed short *gy, signed short *gz) {
     getAccel(ax, ay, az);
     getGyro(gx, gy, gz);
+}
+
+// SPI Call (for Project)
+void DMOTION::getGyroZFromSPI(bool block) {
+    // Don't perform transaction during init
+    if (!_init) {
+        _receivedBlockedDataDuringInit = true;
+        return;
+    }
+
+    _inMotionTransaction = !_readReg(OUTZ_L_G, 2); // 2 bytes of gyro
+
+    // should block
+    while (block && _inMotionTransaction) {}
 }
 
 
@@ -115,28 +131,17 @@ void DMOTION::getMotion(signed short *ax, signed short *ay, signed short *az, si
 // should only be called from DSPI to handle transaction finished.
 // This sets GPIO CC pin idle high to end transaction.
 // Special case for "getMotion()" data.
+// MODIFIED FOR PROJECT -- only get gyroZ
 void DMOTION::endTransaction() {
     DGPIO::Set(DGPIO::MOTION_CC);
 
     if (_inMotionTransaction) {
         // parse data -- should I check some length for proper data access?
-        _gyro[0] = (_inData[2] << 8) | _inData[1];
-        _gyro[1] = (_inData[4] << 8) | _inData[3];
-        _gyro[2] = (_inData[6] << 8) | _inData[5];
-        _accel[0] = (_inData[8] << 8) | _inData[7];
-        _accel[1] = (_inData[10] << 8) | _inData[9];
-        _accel[2] = (_inData[12] << 8) | _inData[11];
+        _gyro[2] = (_inData[2] << 8) | _inData[1];
 
         // testing: UART logging (this is quite a bit for an interrupt handler, so only use when logging)
         if (DMOTION_LOGGING) {
-            DUART::sendString("Gyro: ");
-            DUART::sendInt(_gyro[0], 10, ' ');
-            DUART::sendInt(_gyro[1], 10, ' ');
             DUART::sendInt(_gyro[2], 10, '\n');
-            DUART::sendString("Accel: ");
-            DUART::sendInt(_accel[0], 10, ' ');
-            DUART::sendInt(_accel[1], 10, ' ');
-            DUART::sendInt(_accel[2], 10, '\n');
         }
 
         // toggle flag
@@ -144,6 +149,7 @@ void DMOTION::endTransaction() {
     }
 }
 
+// Not used for project
 // INT1/INT2 interrupt handlers.
 // These should be called from GPIO interrupt handler.
 void DMOTION::INT1Handler() { // assuming both gyro and accel interrupts on INT1, but read both

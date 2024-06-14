@@ -1,17 +1,14 @@
 #include "DDMA.h"
+#include "DLEDS.h" // source, dest, callback for project
 #include "MKL25Z4.h"
-
-// Global DMA src/dst from main.cpp
-extern const unsigned char *g_dmaSrcData;
-extern void *g_dmaDstData;
 
 // static member initialization:
 
 // configurations used in init
 // MUST BE IN CHANNEL ORDER
 const DDMA::DMAConfig DDMA::dmaConfigurations[] = {
-//  {channel,             mode,                 incrementMode,           srcSize,               dstSize,               srcModulo,           dstModulo,  enPeripheralRequest, triggerSource,              bytesToTransfer, src,  dst,          preHandler, postHandler}
-    {DDMA::DMA_CHANNEL_0, DDMA::DMA_CYCLESTEAL, DDMA::DMA_INCREMENT_SRC, DDMA::DMA_BLOCKSIZE_8, DDMA::DMA_BLOCKSIZE_8, DDMA::DMA_MODULO_16, DDMA::DMA_MODULO_DISABLED, true, DDMA::DMAMUX_TPM0_OVERFLOW, 0xFFFF0, g_dmaSrcData, g_dmaDstData, nullptr, nullptr}, // Cycle Steal DMA from src to dst, modulo 16 as many bytes as possible (0xffff0) before restart, TPM0 overflow triggered, no handler callbacks
+//  {channel,             mode,                 incrementMode,           srcSize,               dstSize,               srcModulo,                 dstModulo,  enPeripheralRequest, triggerSource,              bytesToTransfer, src,  dst,      preHandler, postHandler}
+    {DDMA::DMA_CHANNEL_0, DDMA::DMA_CYCLESTEAL, DDMA::DMA_INCREMENT_SRC, DDMA::DMA_BLOCKSIZE_8, DDMA::DMA_BLOCKSIZE_8, DDMA::DMA_MODULO_DISABLED, DDMA::DMA_MODULO_DISABLED, true, DDMA::DMAMUX_TPM2_CH1, 768, DLEDS::getDMABuf(), DLEDS::getDMADest(), DLEDS::startLEDReset, nullptr}, // Cycle Steal DMA from src to dst for 768 bytes (blocks of 16 LEDS with 48 bits each), TPM2 overflow triggered, preHandler callback to start PIT
 };
 
 // private variables
@@ -175,8 +172,10 @@ void DDMA::IRQHandler(DMAChannel channel) {
 
     // Clear flags
     DMA0->DMA[channel].DSR_BCR |= DMA_DSR_BCR_DONE_MASK;
-    // Reset BCR
+    // Reset BCR, src, dst
     DMA0->DMA[channel].DSR_BCR = dmaConfigurations[channel].bytesToTransfer;
+    DMA0->DMA[channel].SAR = (unsigned)_instances[channel].src;
+    DMA0->DMA[channel].DAR = (unsigned)_instances[channel].dst;
     // Restart DMA if not stopping and enPeripheralRequest
     if ((_instances[channel].status == DMAStatus::DMA_RUNNING) && dmaConfigurations[channel].enPeripheralRequest) {
         DMA0->DMA[channel].DCR |= DMA_DCR_ERQ_MASK | DMA_DCR_D_REQ_MASK;

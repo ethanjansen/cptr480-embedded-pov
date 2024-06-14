@@ -17,7 +17,9 @@ class DMOTION {
         MAXDATA_RAW = 13, // 13 bytes of data (including address byte) (address + 6 accel + 6 gyro)
         MAXDATA = MAXDATA_RAW - 1, // 12 bytes of data (6 accel + 6 gyro)
 
-        DMOTION_LOGGING = 1, // 0 to not log, log otherwise
+        CORRECTION_FACTOR = 39,
+
+        DMOTION_LOGGING = 0, // 0 to not log, log otherwise
     };
 
     // methods
@@ -40,9 +42,14 @@ class DMOTION {
 
     // Get Gyroscope Data.
     static void getGyro(signed short *x, signed short *y, signed short *z);
+    static void getGyroZ(signed short *z);
 
     // Get Acceleromter + Gyroscope Data.
     static void getMotion(signed short *ax, signed short *ay, signed short *az, signed short *gx, signed short *gy, signed short *gz);
+
+    // SPI Call to get just GyroZ (used for Project)
+    // set 'block' to make a blocking SPI call
+    static void getGyroZFromSPI(bool block);
 
     // Check if LSM6DSL is busy.
     // Returns True if busy.
@@ -155,6 +162,11 @@ class DMOTION {
         CTRL2_G_VAL_1660HZ = 0x80, // 1660Hz
         CTRL2_G_VAL_3330HZ = 0x90, // 3330Hz
         CTRL2_G_VAL_6660HZ = 0xA0, // 6660Hz
+        // need to OR with this
+        CTRL2_G_VAL_250DPS = 0,
+        CTRL2_G_VAL_500DPS = 0x4,
+        CTRL2_G_VAL_1000DPS = 0x8,
+        CTRL2_G_VAL_2000DPS = 0xC,
 
         // BDU
         CTRL3_C_VAL_BDU = 0x44, // BDU and IF_INC enabled
