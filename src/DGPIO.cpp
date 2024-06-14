@@ -18,19 +18,25 @@ const DGPIO::GPIOTable DGPIO::gpios[] = {
     // { ENCODER2,       5,  PortA, Input,  Float, Disabled,            1,       0,   nullptr                    },  // Both edges -> DROTENC::controlPosition
     // { SW2,            0,  PortD, Input,  PU,    Disabled,            1,       0,   nullptr                    },  // Push-button switches; internal pull-ups are needed // Rising edge -> DROTENC::resetPosition
     // { SW3,            0,  PortB, Input,  PU,    Disabled,            1,       0,   nullptr                    },
-    // { UART0_RX,       1,  PortA, Input,  Float, Disabled,            2,       0,   nullptr                    }, // UART0
-    // { UART0_TX,       2,  PortA, Output, Float, Disabled,            2,       0,   nullptr                    },
-    // { SPI1_MISO,      6,  PortD, Input,  Float, Disabled,            5,       0,   nullptr                    }, // LSM6DSL SPI1 -- MISO/MOSI use alt 5, SCK uses alt 2
-    // { SPI1_MOSI,      7,  PortD, Output, Float, Disabled,            5,       0,   nullptr                    }, // Backwards from schematic
-    // { SPI1_SCK,       5,  PortD, Output, Float, Disabled,            2,       0,   nullptr                    },
-    // { MOTION_CC,      4,  PortD, Output, Float, Disabled,            1,       1,   nullptr                    }, // LSM6DSL SPI CC -- init high
+    { UART0_RX,       1,  PortA, Input,  Float, Disabled,            2,       0,   nullptr                    }, // UART0
+    { UART0_TX,       2,  PortA, Output, Float, Disabled,            2,       0,   nullptr                    },
+    { SPI1_MISO,      6,  PortD, Input,  Float, Disabled,            5,       0,   nullptr                    }, // LSM6DSL SPI1 -- MISO/MOSI use alt 5, SCK uses alt 2
+    { SPI1_MOSI,      7,  PortD, Output, Float, Disabled,            5,       0,   nullptr                    }, // Backwards from schematic
+    { SPI1_SCK,       5,  PortD, Output, Float, Disabled,            2,       0,   nullptr                    },
+    { MOTION_CC,      4,  PortD, Output, Float, Disabled,            1,       1,   nullptr                    }, // LSM6DSL SPI CC -- init high
     // { MOTION_INT1,    3,  PortD, Input,  Float, INT_RisingEdge,      1,       0,   DMOTION::INT1Handler       }, // LSM6DSL Interrupts -- this is backwards from the schematic
     // { MOTION_INT2,    2,  PortD, Input,  Float, INT_RisingEdge,      1,       0,   DMOTION::INT2Handler       },
-    { WAVE0,            0,  PortE, Output, Float, Disabled,            1,       0,   nullptr                    }, // Waveform generator
-    { WAVE1,            1,  PortE, Output, Float, Disabled,            1,       0,   nullptr                    },
-    { WAVE2,            2,  PortE, Output, Float, Disabled,            1,       0,   nullptr                    },
-    { WAVE3,            3,  PortE, Output, Float, Disabled,            1,       0,   nullptr                    },
-    { WAVE4,            4,  PortE, Output, Float, Disabled,            1,       0,   nullptr                    },
+    { LEDS_LOW,        2, PortB, Output, Float, Disabled,             3,       0,   nullptr                    },  // LED bar PWM signals
+    { LEDS_HIGH,       3, PortB, Output, Float, Disabled,             3,       0,   nullptr                    },
+    { LEDS_SEG0,       0, PortC, Output, Float, Disabled,             1,       0,   nullptr                    },  // LED bar segments
+    { LEDS_SEG1,       1, PortC, Output, Float, Disabled,             1,       0,   nullptr                    },
+    { LEDS_SEG2,       2, PortC, Output, Float, Disabled,             1,       0,   nullptr                    },
+    { LEDS_SEG3,       3, PortC, Output, Float, Disabled,             1,       0,   nullptr                    },
+    { LEDS_SEG4,       4, PortC, Output, Float, Disabled,             1,       0,   nullptr                    },
+    { LEDS_SEG5,       5, PortC, Output, Float, Disabled,             1,       0,   nullptr                    },
+    { LEDS_SEG6,       6, PortC, Output, Float, Disabled,             1,       0,   nullptr                    },
+    { LEDS_SEG7,       7, PortC, Output, Float, Disabled,             1,       0,   nullptr                    },
+    { TEST,           20, PortE, Output, Float, Disabled,             1,       0,   nullptr}
 };
 
 // static instantiation

@@ -11,6 +11,10 @@ class DPIT {
             NUM_PITNAMES
         };
 
+        // Interrupt handler callbacks
+        // Optional/extra.
+        typedef void (*PITInterruptHandler)();
+
         // holds interval for each PIT. Indexed by PITName
         static unsigned pitIntervals[NUM_PITNAMES];
 
@@ -42,6 +46,9 @@ class DPIT {
         // specify interval timer
         // void startChained(unsigned long interval); // check if other timers running? -- return code?
 
+        // Interrupt handler callbacks
+        static void setInterruptHandler(PITName pit, PITInterruptHandler handler);
+
         // PIT interrupt handler
         static void IRQHandler();
 
@@ -56,6 +63,9 @@ class DPIT {
 
         // blocking flag
         static bool _block[NUM_PITNAMES];
+
+        // interrupt handlers
+        static PITInterruptHandler _handlers[NUM_PITNAMES];
 };
 
 #endif

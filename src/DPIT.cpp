@@ -7,6 +7,7 @@ unsigned DPIT::pitIntervals[NUM_PITNAMES] = {0, 0};
 // static instantiation
 bool DPIT::_init;
 bool DPIT::_block[NUM_PITNAMES];
+DPIT::PITInterruptHandler DPIT::_handlers[NUM_PITNAMES];
 
 // Initialize PIT clock, interrupts, and enable PIT
 void DPIT::init() {
@@ -33,6 +34,11 @@ void DPIT::setInterruptsPerSec(PITName pit, unsigned interruptsPerSec) {
 void DPIT::setSecPerInterrupt(PITName pit, unsigned secPerInterrupt) {
     // LDVAL = (bus clock * seconds per interrrupt) - 1
     pitIntervals[pit] = (DEFAULT_SYSTEM_CLOCK/((SYSTEM_SIM_CLKDIV1_VALUE>>28)+1)*secPerInterrupt) - 1;
+}
+
+// Set PIT interrupt handler
+void DPIT::setInterruptHandler(PITName pit, PITInterruptHandler handler) {
+    _handlers[pit] = handler;
 }
 
 // Stops pit
@@ -71,6 +77,10 @@ void DPIT::sleep(PITName pit, unsigned ms) {
 void DPIT::IRQHandler() {
     for (unsigned i=0; i<NUM_PITNAMES; i++) {
         if (PIT->CHANNEL[i].TFLG & PIT_TFLG_TIF_MASK) {
+            // Call handler callback
+            if (_handlers[i]) {
+                _handlers[i]();
+            }
             // Stop blocking
             _block[i] = false;
             // Clear interrupt flag

@@ -8,7 +8,7 @@
 // configuration used at init()
 const DSPI::SPIConfig DSPI::spies[] = { // haha "spies" :)
  // spiName, spiMode, clkPolarity, clkPhase, bitOrder, baud, transactionFinishedCallback
-    {SPI_1, MASTER, IDLE_HIGH, TX_1ST_EDGE, MSB_FIRST, BAUD_4MHZ, DMOTION::endTransaction},
+    {SPI_1, MASTER, IDLE_HIGH, TX_1ST_EDGE, MSB_FIRST, BAUD_1MHZ, DMOTION::endTransaction},
 };
 
 // busy flags

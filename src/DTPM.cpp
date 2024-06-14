@@ -10,7 +10,9 @@ const DTPM::TPMConfig DTPM::tpmConfigs[] = {
 //    {DTPM::TPM_2, DTPM::TPM_CH0, DTPM::DIV_4, DTPM::DMA_DISABLED, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 184, 0},     // Red  -- unused
 //    {DTPM::TPM_2, DTPM::TPM_CH1, DTPM::DIV_4, DTPM::DMA_DISABLED, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 184, 0},     // Green -- unused
 //    {DTPM::TPM_0, DTPM::TPM_CH1, DTPM::DIV_4, DTPM::DMA_DISABLED, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 184, 0},     // Blue  -- unused
-    {DTPM::TPM_0, DTPM::TPM_CH2, DTPM::DIV_1, DTPM::DMA_OVERFLOW, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 2000000, 0},     // Ignore channel, but use for 2MHz DMA trigger
+//    {DTPM::TPM_0, DTPM::TPM_CH2, DTPM::DIV_1, DTPM::DMA_OVERFLOW, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 2000000, 0},     // Ignore channel, but use for 2MHz DMA trigger
+    {DTPM::TPM_2, DTPM::TPM_CH0, DTPM::DIV_1, DTPM::DMA_DISABLED, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 800000, 2000}, // LED bar LOW signal
+    {DTPM::TPM_2, DTPM::TPM_CH1, DTPM::DIV_1, DTPM::DMA_MATCH, DTPM::EDGE_ALIGNED, DTPM::HIGH_ON_MATCH, 800000, 5200}, // LED bar HIGH signal (controls DMA for most leniency)
 };
 
 // Static var initialization
